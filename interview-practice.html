@@ -1,0 +1,1037 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>面试题库与思考/回答框架</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap');
+  :root{
+    --bg:#FFF8E7; --card:#ffffff; --ink:#111111; --sub:#4a4a4a;
+    --line:#111111; --brand:#2D5BFF; --brand-d:#111111;
+    --star:#FFB800; --ok:#06C270; --warn:#FF9F1C;
+    /* 难度语义（野兽派亮色）：高频=红 / 较可能=黄 / 深挖=青 */
+    --s3:#FFD9D9; --s3b:#D62828; --s2:#FFEFA6; --s2b:#8A6A00; --s1:#B8F1EB; --s1b:#0B6E68;
+    /* 硬阴影（无模糊）*/
+    --shadow:4px 4px 0 #111; --shadow-sm:3px 3px 0 #111; --shadow-lg:7px 7px 0 #111;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Space Grotesk',-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;
+    background:var(--bg);color:var(--ink);line-height:1.7;padding-top:64px;padding-left:248px;
+    -webkit-font-smoothing:antialiased;transition:padding-left .25s}
+  body.nav-collapsed{padding-left:0}
+  /* 顶部固定条 */
+  header{position:fixed;top:0;left:0;right:0;height:64px;z-index:100;background:rgba(255,255,255,.88);
+    backdrop-filter:blur(12px);border-bottom:1px solid var(--line);display:flex;align-items:center;
+    padding:0 24px;gap:12px}
+  #navToggle{flex:none;width:34px;height:34px;border:1px solid var(--line);border-radius:8px;background:#f2f3f5;
+    cursor:pointer;font-size:16px;color:var(--ink);display:flex;align-items:center;justify-content:center;transition:.15s}
+  #navToggle:hover{background:#e5e6eb}
+  header h1{font-size:16px;font-weight:700;white-space:nowrap}
+  header .meta{font-size:12px;color:var(--sub);white-space:nowrap}
+  header .spacer{flex:1}
+  .status{font-size:12px;color:var(--sub);white-space:nowrap}
+  .status b{color:var(--ok)}
+  .btn{border:none;border-radius:8px;padding:8px 16px;font-size:13px;font-weight:600;cursor:pointer;
+    transition:.15s;white-space:nowrap}
+  .btn-primary{background:var(--brand);color:#fff}
+  .btn-primary:hover{background:var(--brand-d)}
+  .btn-ghost{background:#f2f3f5;color:var(--ink)}
+  .btn-ghost:hover{background:#e5e6eb}
+  /* 进度条 */
+  .progwrap{position:fixed;top:64px;left:0;right:0;height:3px;background:transparent;z-index:99}
+  .progbar{height:100%;width:0;background:linear-gradient(90deg,var(--brand),#22d3ee);transition:width .3s}
+  /* 布局 */
+  .wrap{max-width:1080px;margin:0 auto;padding:28px 24px 120px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:24px 28px;
+    margin-bottom:22px;box-shadow:0 1px 3px rgba(0,0,0,.03);scroll-margin-top:80px}
+  .card > h2{font-size:20px;font-weight:800;margin-bottom:4px;display:flex;align-items:center;gap:10px;
+    cursor:pointer;user-select:none}
+  .card > h2::after{content:'▾';margin-left:auto;font-size:14px;color:var(--sub);font-weight:400;
+    transition:transform .2s;flex:none}
+  .card.collapsed > h2::after{transform:rotate(-90deg)}
+  .card.collapsed{padding-bottom:24px}
+  .card.collapsed > h2{margin-bottom:0}
+  .card.collapsed > *:not(h2){display:none!important}
+  /* 思维导图 */
+  .mm-title{font-size:13px;font-weight:700;color:var(--brand-d);margin:20px 0 2px}
+  .mm{overflow-x:auto;padding:12px 2px 6px;--mml:#c9cdd4}
+  .mm-row,.mm-item{display:flex;align-items:center}
+  .mm-col{display:flex;flex-direction:column;gap:10px;padding-left:30px;position:relative}
+  .mm-col::before{content:'';position:absolute;left:0;top:17px;bottom:17px;border-left:2px solid var(--mml)}
+  .mm-col>.mm-row{position:relative}
+  .mm-col>.mm-row::before{content:'';position:absolute;left:-30px;top:50%;width:30px;border-top:2px solid var(--mml)}
+  .mm .node{display:inline-block;padding:6px 11px;border:1px solid var(--line);border-radius:9px;background:#fff;
+    font-size:12.5px;line-height:1.45;box-shadow:0 1px 2px rgba(0,0,0,.03);max-width:260px;white-space:normal}
+  .mm .mm-root{background:var(--brand);color:#fff;border-color:var(--brand);font-weight:700;max-width:150px}
+  .mm .mm-l1{background:#eef3ff;border-color:#cdddff;color:var(--brand-d);font-weight:700}
+  .mm .node.hot{background:#fff7f7;border-color:#f3c0c0;color:#c0392b}
+  .mm .node.warn{background:#fffbeb;border-color:#f3dca0;color:#8a6a1c}
+  .mm .mm-note{display:block;font-size:11px;color:var(--sub);font-weight:400;margin-top:2px}
+  .mm .mm-root .mm-note{color:#dbe4ff}
+  .card > h2 .tag{font-size:12px;font-weight:600;color:#fff;background:var(--brand);border-radius:6px;
+    padding:2px 8px}
+  .card .cat-desc{color:var(--sub);font-size:13px;margin:6px 0 18px;padding:10px 14px;background:#f7f8fa;
+    border-radius:8px;border-left:3px solid var(--brand)}
+  /* 参考型卡片渲染内容 */
+  .ref h3{font-size:16px;margin:18px 0 8px}
+  .ref h4{font-size:14px;margin:14px 0 6px;color:var(--brand-d)}
+  .ref p{margin:8px 0}
+  .ref ul,.ref ol{margin:8px 0 8px 22px}
+  .ref li{margin:4px 0}
+  .ref code{background:#f2f3f5;padding:2px 6px;border-radius:4px;font-size:13px;
+    font-family:"SF Mono",Consolas,monospace}
+  .ref blockquote{border-left:3px solid var(--star);background:#fffdf5;padding:8px 14px;margin:10px 0;
+    border-radius:0 8px 8px 0;color:#7a5b00}
+  .ref strong{color:var(--brand-d)}
+  .ref hr{border:none;border-top:1px dashed var(--line);margin:16px 0}
+  /* 题目条目 */
+  .q{border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin-bottom:14px;transition:.15s;
+    scroll-margin-top:90px}
+  /* ===== 真题索引（三级可收缩） ===== */
+  .ridx{margin:2px 0 20px;border:1px solid #cdddff;border-radius:12px;overflow:hidden;background:#fcfdff}
+  .ridx-hd{display:flex;align-items:center;gap:8px;padding:11px 16px;background:#eef3ff;cursor:pointer;
+    user-select:none;font-size:14px;font-weight:800;color:var(--brand-d)}
+  .ridx-hd::after{content:'▾';margin-left:auto;font-size:12px;transition:transform .2s}
+  .ridx.closed .ridx-hd::after{transform:rotate(-90deg)}
+  .ridx.closed .ridx-bd{display:none}
+  .ridx-bd{padding:10px 10px 12px}
+  .ridx-tools{display:flex;align-items:center;gap:6px;padding:0 6px 10px;flex-wrap:wrap}
+  .ridx-tools button{font-size:11px;padding:4px 10px;border:1px solid var(--line);border-radius:6px;
+    background:#fff;color:var(--sub);cursor:pointer;transition:.12s}
+  .ridx-tools button:hover{background:var(--brand);color:#fff;border-color:var(--brand)}
+  .ridx-lg{margin-left:auto;font-size:10.5px;color:#a0a4ab;display:flex;align-items:center;gap:3px;flex-wrap:wrap}
+  /* L1 公司层 */
+  .rco{margin:0 0 7px;border:1px solid var(--line);border-radius:9px;overflow:hidden;background:#fff}
+  .rco-hd{display:flex;align-items:center;gap:8px;padding:9px 12px;cursor:pointer;user-select:none;
+    font-size:13.5px;font-weight:700;background:#f7f8fa;transition:.12s}
+  .rco-hd:hover{background:#f0f2f5}
+  .rco-hd::after{content:'▾';margin-left:auto;font-size:11px;color:var(--sub);transition:transform .2s;flex:none}
+  .rco.closed .rco-hd::after{transform:rotate(-90deg)}
+  .rco.closed .rco-bd{display:none}
+  .rco-date{flex:none;font-size:10.5px;font-weight:700;color:#fff;background:#8f959e;border-radius:5px;padding:1px 7px}
+  .rco-n{flex:none;font-size:11px;color:#9aa0a8;font-weight:600}
+  .rco-bd{padding:7px 10px 9px}
+  .rco-note{font-size:11px;color:var(--sub);padding:2px 8px 8px;line-height:1.55}
+  /* L2 维度层 */
+  .rdim{margin:3px 0}
+  .rdim-hd{display:flex;align-items:center;gap:7px;padding:5px 8px;cursor:pointer;user-select:none;
+    font-size:12.5px;font-weight:700;color:var(--brand-d);border-radius:6px;transition:.12s}
+  .rdim-hd:hover{background:#f0f5ff}
+  .rdim-hd::after{content:'▾';margin-left:auto;font-size:10px;color:#b4b8bf;transition:transform .2s;flex:none}
+  .rdim.closed .rdim-hd::after{transform:rotate(-90deg)}
+  .rdim.closed .rdim-bd{display:none}
+  .rdim-n{flex:none;font-size:10.5px;font-weight:700;color:var(--sub);background:#f2f3f5;border-radius:4px;padding:1px 6px}
+  .rdim-c{flex:none;font-size:10.5px;color:#b4b8bf;font-weight:600}
+  .rdim-bd{padding-left:14px;margin-left:10px;border-left:2px solid #e9ebf0}
+  /* L3 真题层 */
+  a.rq{display:flex;align-items:flex-start;gap:7px;padding:5px 8px;font-size:12.5px;color:var(--ink);
+    text-decoration:none;border-radius:6px;line-height:1.55;transition:.12s}
+  a.rq:hover{background:#f0f5ff;color:var(--brand-d)}
+  a.rq .rq-id{flex:none;font-size:10.5px;font-weight:700;color:#9aa0a8;min-width:30px;padding-top:1px}
+  .rflag{display:inline-block;flex:none;font-size:10px;font-weight:700;border-radius:4px;padding:0 5px;
+    margin-left:5px;line-height:16px;vertical-align:1px}
+  .rflag.f-star{background:#e8f7ee;color:#0b8a3e}
+  .rflag.f-ok{background:#eef3ff;color:var(--brand-d)}
+  .rflag.f-fix{background:#fff3e0;color:#e8590c}
+  .rflag.f-miss{background:#fff7e6;color:#b35c00}
+  .rflag.f-fail{background:#fef2f2;color:#ef4444}
+  /* 跳转闪烁高亮 */
+  .q.flash{animation:qflash 1.8s ease-out}
+  @keyframes qflash{0%,22%{background:#fff8e1;border-color:var(--star);box-shadow:0 0 0 3px rgba(245,158,11,.16)}
+    100%{background:transparent;box-shadow:none}}
+  .q.answered{border-color:#b7ebc6;background:#fbfffc}
+  .q-head{display:flex;align-items:flex-start;gap:10px;margin-bottom:10px}
+  .q-num{flex:none;width:30px;height:30px;border-radius:8px;background:#f2f3f5;color:var(--sub);
+    font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center}
+  .q.answered .q-num{background:var(--ok);color:#fff}
+  .q-body{flex:1}
+  .q-text{font-size:15px;font-weight:600;line-height:1.6}
+  .q-text b,.q-text strong{color:var(--brand-d)}
+  .stars{font-size:12px;color:var(--star);letter-spacing:1px;margin-left:6px}
+  .lvl{display:inline-block;font-size:11px;font-weight:700;padding:1px 7px;border-radius:5px;margin-right:6px;
+    vertical-align:middle}
+  .lvl.l3{background:var(--s3);color:var(--s3b)} .lvl.l2{background:var(--s2);color:var(--s2b)}
+  .lvl.l1{background:var(--s1);color:var(--s1b)}
+  .lvl.real{background:#111827;color:#fff;letter-spacing:.5px}
+  .q.is-real{border-left:3px solid #111827}
+  .ref .danger,.danger{color:#dc2626;font-weight:800}
+  .rflag.f-fail{background:#fef2f2;color:#dc2626;font-weight:800}
+  .rflag.f-miss{background:#fdecec;color:#dc2626;font-weight:800}
+  /* 答题区 */
+  .ans{margin-top:6px}
+  .tabs{display:flex;gap:4px;margin-bottom:8px}
+  .tab{font-size:12px;padding:4px 12px;border-radius:6px 6px 0 0;cursor:pointer;color:var(--sub);
+    border:1px solid transparent;background:none}
+  .tab.on{color:var(--brand);font-weight:700;background:#f0f5ff}
+  textarea.inp{width:100%;min-height:110px;border:1px solid var(--line);border-radius:8px;padding:12px 14px;
+    font-size:14px;line-height:1.7;resize:vertical;font-family:inherit;background:#fcfcfd;transition:.15s}
+  textarea.inp:focus{outline:none;border-color:var(--brand);background:#fff;box-shadow:0 0 0 3px rgba(51,112,255,.1)}
+  .preview{border:1px solid var(--line);border-radius:8px;padding:12px 16px;min-height:110px;background:#fcfcfd;
+    font-size:14px}
+  .preview:empty::before{content:"（还没有内容，切到 编辑 写下你的答案，支持 Markdown）";color:#bbb;font-size:13px}
+  .preview h1,.preview h2,.preview h3,.preview h4{margin:8px 0 4px}
+  .preview ul,.preview ol{margin:6px 0 6px 20px} .preview li{margin:3px 0}
+  .preview p{margin:6px 0} .preview strong{color:var(--brand-d)}
+  .preview code{background:#f2f3f5;padding:2px 6px;border-radius:4px;font-family:"SF Mono",Consolas,monospace;font-size:13px}
+  .preview blockquote{border-left:3px solid var(--star);background:#fffdf5;padding:6px 12px;margin:8px 0;color:#7a5b00}
+  .preview pre{background:#1e293b;color:#e2e8f0;padding:12px;border-radius:8px;overflow:auto;margin:8px 0}
+  .preview pre code{background:none;color:inherit;padding:0}
+  .hint{font-size:11px;color:#a0a4ab;margin-top:4px}
+  /* Toast */
+  .toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(20px);background:#1f2329;
+    color:#fff;padding:10px 22px;border-radius:10px;font-size:13px;opacity:0;pointer-events:none;
+    transition:.25s;z-index:200}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+  /* 左侧目录 */
+  #sidebar{position:fixed;top:64px;left:0;bottom:0;width:248px;background:#fff;border-right:1px solid var(--line);
+    overflow-y:auto;padding:14px 12px 48px;z-index:90;transition:transform .25s}
+  body.nav-collapsed #sidebar{transform:translateX(-100%)}
+  #sidebar .side-tools{display:flex;gap:6px;margin:4px 6px 12px}
+  #sidebar .side-tools button{flex:1;font-size:11px;padding:6px 4px;border:1px solid var(--line);border-radius:7px;
+    background:#f7f8fa;color:var(--sub);cursor:pointer;transition:.12s}
+  #sidebar .side-tools button:hover{background:var(--brand);color:#fff;border-color:var(--brand)}
+  #sidebar .side-h{font-size:11px;color:#a0a4ab;padding:10px 10px 4px;font-weight:700;letter-spacing:.4px}
+  #sidebar a{display:block;font-size:13px;padding:7px 10px;border-radius:8px;color:var(--sub);text-decoration:none;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:.12s}
+  #sidebar a:hover{background:#f2f3f5;color:var(--ink)}
+  #sidebar a.cur{background:#f0f5ff;color:var(--brand);font-weight:600}
+  #sidebar a.hl-green{background:#e8f7ee;color:#0b8a3e;font-weight:700}
+  #sidebar a.hl-orange{background:#fff3e0;color:#e8590c;font-weight:700}
+  #sidebar a.hl-red{background:#fef2f2;color:#dc2626;font-weight:700}
+  #sidebar a .ab{display:inline-block;min-width:30px;color:#b4b8bf;font-size:11px;font-weight:700}
+  @media(max-width:860px){
+    body{padding-left:0}
+    #sidebar{transform:translateX(-100%);box-shadow:0 8px 30px rgba(0,0,0,.18)}
+    body.nav-open #sidebar{transform:translateX(0)}
+  }
+  @media(max-width:640px){header h1{font-size:14px}.wrap{padding:16px 12px 100px}.card{padding:18px 16px}
+    header .meta{display:none}}
+  /* ============================================================
+     Neubrutalism 皮肤（克制版）· 覆盖层
+     粗黑边 + 硬阴影 + 野兽派亮色 + 直角；正文/答题区保持干净易读
+     ============================================================ */
+  h1,h2,h3,h4,.btn,.tag,.lvl,.rflag{font-weight:700}
+  /* 顶栏 */
+  header{background:#fff;border-bottom:3px solid #111;backdrop-filter:none}
+  header h1{font-weight:800}
+  #navToggle{border:2px solid #111;border-radius:0;box-shadow:var(--shadow-sm);background:#fff}
+  #navToggle:hover{background:var(--star)}
+  /* 按钮：直角 + 粗黑边 + 硬阴影 + 悬停位移吃掉阴影 */
+  .btn{border:2px solid #111;border-radius:0;box-shadow:var(--shadow-sm);transition:transform .12s,box-shadow .12s}
+  .btn:hover{transform:translate(2px,2px);box-shadow:none}
+  .btn-primary{background:#111;color:#fff}
+  .btn-primary:hover{background:#111}
+  .btn-ghost{background:#fff;color:#111}
+  .btn-ghost:hover{background:var(--star)}
+  /* 进度条：实色无渐变 */
+  .progbar{background:var(--brand)}
+  /* 卡片：直角 + 粗黑边 + 硬阴影 */
+  .card{border:3px solid #111;border-radius:0;box-shadow:var(--shadow)}
+  .card>h2{font-weight:800}
+  .card>h2 .tag{background:#111;color:#fff;border-radius:0}
+  .cat-desc{border-radius:0;border-left:6px solid #111;background:#FFF3BF;color:#111}
+  /* 题目条目：直角 + 黑边 */
+  .q{border:2px solid #111;border-radius:0;transition:transform .12s,box-shadow .12s}
+  .q:hover{box-shadow:var(--shadow-sm)}
+  .q.answered{background:#EAFBF1;border-color:#111}
+  .q.answered .q-num{background:var(--ok);color:#fff}
+  .q-num{border:2px solid #111;border-radius:0;background:#fff;color:#111}
+  /* 难度 / 真题 徽章：直角 + 黑边 */
+  .lvl{border:2px solid #111;border-radius:0}
+  .lvl.l3{background:var(--s3);color:#111}
+  .lvl.l2{background:var(--s2);color:#111}
+  .lvl.l1{background:var(--s1);color:#111}
+  .lvl.real{background:#111;color:#fff}
+  .q.is-real{border-left:8px solid #111}
+  /* 答题区：黑边直角，保持干净（聚焦才强调） */
+  textarea.inp,.preview{border:2px solid #111;border-radius:0;background:#fff}
+  textarea.inp:focus{box-shadow:var(--shadow-sm);border-color:#111}
+  .tab{border-radius:0}
+  .tab.on{background:var(--star);color:#111;border:2px solid #111;border-bottom:none}
+  /* 参考卡内文 */
+  .ref blockquote{border-left:6px solid #111;background:#FFF3BF;border-radius:0;color:#111}
+  .ref code{background:#FFEFA6;border:1px solid #111;border-radius:0;color:#111}
+  .ref strong{color:#111}
+  .ref hr{border-top:2px dashed #111}
+  /* 危险信号：红字加粗（翻/漏），覆盖后仍最醒目 */
+  .ref .danger,.danger{color:#D62828;font-weight:800}
+  /* 真题索引（三级折叠） */
+  .ridx{border:3px solid #111;border-radius:0;background:#fff}
+  .ridx-hd{background:var(--star);color:#111;border-bottom:3px solid #111}
+  .ridx-tools button{border:2px solid #111;border-radius:0}
+  .ridx-tools button:hover{background:#111;color:#fff}
+  .rco{border:2px solid #111;border-radius:0}
+  .rco-hd{background:#F2F0E6}
+  .rco-date{background:#111;border-radius:0}
+  .rdim-n{background:#111;color:#fff;border-radius:0}
+  .rdim-bd{border-left:3px solid #111}
+  a.rq .rq-id{color:#111}
+  /* 复盘表现 flag：野兽派亮色 + 黑边；漏/翻=红 */
+  .rflag{border:2px solid #111;border-radius:0}
+  .rflag.f-star{background:#9BF6C9;color:#06402B}
+  .rflag.f-ok{background:#A0C4FF;color:#0B2E8A}
+  .rflag.f-fix{background:#FFB347;color:#5A3300}
+  .rflag.f-miss{background:#FF5A5A;color:#111}
+  .rflag.f-fail{background:#FF2D2D;color:#fff}
+  /* 思维导图：直角 + 黑边 + 硬阴影 */
+  .mm{--mml:#111}
+  .mm .node{border:2px solid #111;border-radius:0;box-shadow:var(--shadow-sm)}
+  .mm .mm-root{background:#111;color:#fff;border-color:#111}
+  .mm .mm-l1{background:#A0C4FF;color:#111;border-color:#111}
+  .mm .node.hot{background:#FF5A5A;color:#111;border-color:#111}
+  .mm .node.warn{background:var(--s2);color:#111;border-color:#111}
+  .mm .mm-note{color:#333}
+  .mm .mm-root .mm-note{color:#eee}
+  /* 侧栏 */
+  #sidebar{border-right:3px solid #111}
+  #sidebar .side-tools button{border:2px solid #111;border-radius:0;background:#fff}
+  #sidebar .side-tools button:hover{background:#111;color:#fff}
+  #sidebar a{border-radius:0}
+  #sidebar a.cur{background:var(--brand);color:#fff;font-weight:700}
+  #sidebar a.hl-green{background:#9BF6C9;color:#06402B;border:2px solid #111;margin:3px 2px}
+  #sidebar a.hl-orange{background:#FFB347;color:#5A3300;border:2px solid #111;margin:3px 2px}
+  #sidebar a.hl-red{background:#FF5A5A;color:#111;border:2px solid #111;margin:3px 2px}
+  /* Toast + 进度槽 */
+  .toast{border:2px solid #fff;border-radius:0}
+  /* ========== 淡紫色小节总结块 + 荧光笔重点 ========== */
+  /* 章/节开头总结块：套用复盘开头总结块的样式，配色改淡紫色 */
+  .card .cat-desc{background:#ECE3FF;border:none;border-left:6px solid #7C3AED;border-radius:0;color:#111}
+  /* 重点结论：蓝色荧光笔打底（替换原来的蓝色加粗） */
+  .ref strong,.q-text strong,.q-text b,.preview strong{
+    color:#111;font-weight:700;
+    background:linear-gradient(transparent 38%,#A5D4FF 38%);
+    padding:0 1px;-webkit-box-decoration-break:clone;box-decoration-break:clone}
+  /* 危险信号（翻/漏）：玫红色荧光笔打底（替换原来的红色加粗） */
+  .ref .danger,.danger{
+    color:#111;font-weight:800;
+    background:linear-gradient(transparent 38%,#FF8FBE 38%);
+    padding:0 1px;-webkit-box-decoration-break:clone;box-decoration-break:clone}
+  /* ========== 复盘排版 / 标题折叠 / 危险块 / 题号按钮 / 真题备注 ========== */
+  /* 标题层级字号 */
+  .ref h1{font-size:22px;font-weight:800;margin:16px 0 8px}
+  .ref h2{font-size:19px;font-weight:800;margin:16px 0 8px}
+  .ref h3{font-size:16px;font-weight:700;margin:16px 0 6px}
+  .ref h4{font-size:14px;font-weight:700;margin:12px 0 6px;color:#111}
+  /* 可折叠标题（点标题收起/展开其下内容） */
+  .ref .fold-h{cursor:pointer;user-select:none;display:flex;align-items:center;gap:8px}
+  .ref .fold-h::after{content:'▾';font-size:12px;color:#777;font-weight:400;transition:transform .15s;margin-left:auto}
+  .ref .fold-h.collapsed::after{transform:rotate(-90deg)}
+  /* 复盘条目：问题/答案/点评 分点缩进，不挤成一块 */
+  .ref .rv-item{list-style:none;margin:12px 0;padding-left:0}
+  .ref .rv-q{font-weight:700;color:#111;margin-bottom:5px;line-height:1.6}
+  .ref ul.rv-sub{list-style:none;margin:3px 0 3px 4px;padding-left:14px;border-left:2px dashed #c7c2b4}
+  .ref ul.rv-sub>li{margin:4px 0;position:relative;padding-left:18px;line-height:1.65}
+  .ref ul.rv-sub>li::before{position:absolute;left:0;top:0;font-size:11px;font-weight:700}
+  .ref li.rv-a::before{content:'答';color:#0B6E68}
+  .ref li.rv-c::before{content:'评';color:#8A6A00}
+  /* 危险块：整条玫红底（题号按钮除外） */
+  .ref .danger-block{background:#FFE1EC;border-left:4px solid #FF2D7A;padding:5px 10px;border-radius:0}
+  .ref li.rv-c.danger-block::before{content:'险';color:#B3005B}
+  .ref .danger-block .danger{background:none;padding:0;color:#B3005B;font-weight:800}
+  /* 题号跳转按钮：蓝底白字带黑边 */
+  a.qjump{display:inline-block;background:var(--brand);color:#fff;border:2px solid #111;border-radius:0;
+    padding:0 6px;margin:0 2px;font-weight:700;font-size:12px;text-decoration:none;line-height:1.6;
+    box-shadow:2px 2px 0 #111;vertical-align:1px;transition:transform .1s,box-shadow .1s}
+  a.qjump:hover{transform:translate(1px,1px);box-shadow:1px 1px 0 #111;color:#fff}
+  /* 真题备注行：比题干小一号的灰字 */
+  .q-note{font-size:13px;color:#8a8a8a;margin-top:5px;line-height:1.65}
+  .q-note strong{background:none;color:#5f5f5f;font-weight:700}
+  /* 目录·实战复盘：采用参考 html 的配色（珊瑚/黄/薄荷） */
+  #sidebar a.hl-green{background:#A8E6CF;color:#114b36}
+  #sidebar a.hl-orange{background:#FFE66D;color:#5a4a00}
+  #sidebar a.hl-red{background:#FF6B6B;color:#4a0000}
+  /* ========== 复盘格式整理：图例统一 / 问题黄标 / 危险块收敛 / 行距段距 ========== */
+  /* 行距与段间距：段界更明显 */
+  .ref{line-height:1.9}
+  .ref p,.ref ul,.ref ol,.ref blockquote,.ref pre{margin:16px 0}
+  .ref h1,.ref h2,.ref h3{margin-top:28px}
+  .ref h4{margin-top:20px}
+  /* 分点之间加换行（更大间隔） */
+  .ref ul>li,.ref ol>li{margin:10px 0}
+  .ref ul.rv-sub>li{margin:10px 0}
+  .ref .rv-item{margin:20px 0}
+  .ref .rv-q{margin-bottom:10px}
+  /* flag 图例徽章在复盘正文中的间距（样式沿用第二章真题索引） */
+  .ref .rflag{margin:0 5px 0 0;vertical-align:1px}
+  /* 问题部分：黄色荧光笔（替换蓝色） */
+  .ref .rv-q strong{background:linear-gradient(transparent 38%,#FFE066 38%);color:#111;font-weight:700}
+  /* 危险块内部不再叠加荧光笔标记（块本身已是玫红底） */
+  .ref .danger-block strong{background:none;color:#B3005B}
+  /* ========== 导出下拉菜单 ========== */
+  .exp-wrap{position:relative;display:inline-block}
+  .exp-menu{position:absolute;right:0;top:calc(100% + 6px);background:#fff;border:2px solid #111;
+    box-shadow:var(--shadow-sm);display:none;z-index:120;min-width:176px}
+  .exp-menu.show{display:block}
+  .exp-menu button{display:block;width:100%;text-align:left;border:none;background:#fff;color:#111;
+    font-size:13px;font-weight:600;padding:10px 14px;cursor:pointer}
+  .exp-menu button:hover{background:var(--star)}
+  /* ========== 高亮块内同色系（危险>>重点；块内不跨色） ========== */
+  /* 黄块（复盘对象引用 / 问题行）内的重点 → 橙色 */
+  .ref blockquote strong{background:linear-gradient(transparent 38%,#FFC078 38%);color:#111}
+  .ref .rv-q em,.ref blockquote em{background:linear-gradient(transparent 38%,#FFC078 38%);font-style:normal;color:#111}
+  /* 紫块（章节/小节总结块）内的重点 → 紫色 */
+  .card .cat-desc strong{background:linear-gradient(transparent 38%,#D9B8FF 38%);color:#111}
+  /* 玫红危险块内的重点 → 玫红加粗字（不叠荧光） */
+  .ref .danger-block strong{background:none;color:#B3005B;font-weight:800}
+  /* 所有按钮 / 图例徽章禁用荧光笔，保持自身纯色 */
+  .ref a.qjump{background:var(--brand);background-image:none}
+  .ref .rflag,.ref .lvl{background-image:none}
+  /* ========== 打印 / 导出 PDF：A4 竖版，卡片展开，强制分页 ========== */
+  @media print{
+    @page{size:A4 portrait;margin:14mm 12mm}
+    html,body{background:#fff!important;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;color-adjust:exact!important}
+    body{padding:0!important}
+    header,#sidebar,.progwrap,.toast,#navToggle,.exp-wrap{display:none!important}
+    .wrap{max-width:none!important;margin:0!important;padding:0!important}
+    .card{box-shadow:4px 4px 0 #111!important;break-inside:auto;margin:0 0 14px!important;border:3px solid #111}
+    /* a. 换章节/换复盘 → 强制另起一页 */
+    .chap-break{break-before:page}
+    /* b. 块不可切断：打不下则整块移到下一页 */
+    .q,.rv-item,.rco,.mm,.mm-row,.cat-desc,.ref blockquote,.ref ul.rv-sub,
+    .ref>ul>li,.ref>ol>li,.ref>p{break-inside:avoid}
+    /* 答题区仅保留预览 */
+    .tabs,.hint,textarea.inp,.ridx-tools,.side-tools{display:none!important}
+    .q .preview{display:block!important;border:none;background:none;padding:6px 0 0}
+    .ridx .ridx-bd,.rco .rco-bd,.rdim .rdim-bd{display:block!important}
+    a[href]{text-decoration:none}
+    a.qjump{box-shadow:none;border-width:1px}
+  }
+  /* ========== 行内危险标注修正：旗标引导加粗 + !!…!! 行内危险 ========== */
+  /* 旗标（亮/稳/改/漏/翻）引导的加粗短语：一律不加荧光，仅纯加粗（徽章颜色已表语义） */
+  .ref strong.dgr-strong,.ref strong.pos-strong{background:none;color:#111}
+  /* 行内危险短语 !!…!! → 玫红荧光 */
+  .ref .dgr{background:linear-gradient(transparent 38%,#FF8FBE 38%);color:#111;font-weight:700}
+  /* 玫红危险块内：统一玫红字体，不叠任何荧光（块本身已是玫红底） */
+  .ref .danger-block strong,.ref .danger-block .dgr{background:none;color:#B3005B;font-weight:800}
+  /* ========== 分维度统计分隔符｜（加粗）+ 四色荧光笔 + 格式工具栏 ========== */
+  .vsep{font-weight:800;color:#111;margin:0 3px}
+  .hl{padding:0 1px;-webkit-box-decoration-break:clone;box-decoration-break:clone}
+  .hl-b{background:linear-gradient(transparent 38%,#A5D4FF 38%)}
+  .hl-o{background:linear-gradient(transparent 38%,#FFC078 38%)}
+  .hl-p{background:linear-gradient(transparent 38%,#D9B8FF 38%)}
+  .hl-r{background:linear-gradient(transparent 38%,#FF8FBE 38%)}
+  /* 工具栏图标按钮 */
+  .fmt-tools{display:flex;align-items:center;gap:6px}
+  .fmt-btn{width:32px;height:32px;border:2px solid #111;background:#fff;border-radius:0;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;font-size:15px;color:#111;transition:.12s;padding:0}
+  .fmt-btn:hover{background:var(--star)}
+  .fmt-btn.on{background:#111;color:#fff}
+  .fmt-hl-wrap{position:relative}
+  .hl-palette{position:absolute;left:0;top:calc(100% + 6px);background:#fff;border:2px solid #111;
+    box-shadow:var(--shadow-sm);display:none;padding:6px;gap:6px;z-index:120}
+  .hl-palette.show{display:flex}
+  .hl-palette button{width:22px;height:22px;border:2px solid #111;border-radius:0;cursor:pointer;padding:0}
+  .hl-palette button.on{outline:3px solid #111;outline-offset:1px}
+  body.hl-mode,body.hl-mode textarea.inp{cursor:crosshair}
+</style>
+</head>
+<body>
+<header>
+  <button id="navToggle" title="收起/展开目录">☰</button>
+  <h1>面试题库 · 答题练习</h1>
+  <span class="meta">你的名字 / 目标岗位</span>
+  <div class="spacer"></div>
+  <div class="fmt-tools">
+    <button class="fmt-btn" id="fmtBold" title="加粗：在某道题答案里选中文本后点此"><b>B</b></button>
+    <div class="fmt-hl-wrap">
+      <button class="fmt-btn" id="fmtHl" title="荧光笔：点开选色，选中答案文本即上色；再点关闭">
+        <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h16"/><path d="M14.5 4.5l5 5-8.5 8.5H6v-5z"/></svg>
+      </button>
+      <div class="hl-palette" id="hlPalette">
+        <button data-c="b" style="background:#A5D4FF" title="蓝"></button>
+        <button data-c="o" style="background:#FFC078" title="橙"></button>
+        <button data-c="p" style="background:#D9B8FF" title="紫"></button>
+        <button data-c="r" style="background:#FF8FBE" title="玫红"></button>
+      </div>
+    </div>
+  </div>
+  <span class="status" id="status">未保存</span>
+  <div class="exp-wrap">
+    <button class="btn btn-ghost" id="exportBtn">导出 ▾</button>
+    <div class="exp-menu" id="expMenu">
+      <button id="expMd">导出 Markdown</button>
+      <button id="expPdf">导出 PDF（打印）</button>
+    </div>
+  </div>
+  <button class="btn btn-primary" id="saveBtn">保存答案</button>
+</header>
+<aside id="sidebar"></aside>
+<div class="progwrap"><div class="progbar" id="progbar"></div></div>
+<div class="wrap" id="wrap"></div>
+<div class="toast" id="toast"></div>
+<script type="application/json" id="bankData">
+{
+  "updated": "2025-01-01",
+  "dims": [
+    { "id": "D1", "title": "归属与权责", "tag": "L1 事实", "desc": "验证简历真假：这事谁拍板、团队几人、你产出了什么交付物、哪部分不是你做的。" },
+    { "id": "D2", "title": "数据口径", "tag": "L1 事实", "desc": "分母是什么、怎么埋点、基线是谁、哪个环节流失、还能怎么提升。" },
+    { "id": "D3", "title": "技术方案与选型", "tag": "L2 专业", "desc": "workflow vs agent、模型选型、Prompt、成本、降级兜底。" },
+    { "id": "D4", "title": "评测与质量", "tag": "L2 专业", "desc": "评测集怎么建、指标怎么定、badcase 归因、幻觉测试。" },
+    { "id": "D5", "title": "产品定义与价值", "tag": "L2 专业", "desc": "用户是谁、痛点动作、为什么做这个不做那个、差异点在哪。" },
+    { "id": "D6", "title": "商业与成本", "tag": "L3 思维", "desc": "单位成本、定价、ROI、放量节奏、付费设计。" },
+    { "id": "D7", "title": "开放 / Case 题", "tag": "L3 思维", "desc": "假设场景设计、定价、增长、0-1 品类判断，先分析后方案。" },
+    { "id": "D8", "title": "行业认知", "tag": "L3 思维", "desc": "行业应用地图、玩家路线差异、技术与落地顺序。" },
+    { "id": "D9", "title": "项目推进与协作", "tag": "L4 协作", "desc": "跨团队/供应商、优先级冲突、需求被否、排期风险。" },
+    { "id": "D10", "title": "动机与职业发展", "tag": "L5 动机", "desc": "为什么这个岗/公司、转正、offer、三年规划。" },
+    { "id": "D11", "title": "个人特质", "tag": "L5 动机", "desc": "兴趣爱好、MBTI、优缺点、抗压、学习方式、反问。" }
+  ],
+  "questions": [
+    { "id": 1, "dim": "D1", "star": 3, "text": "自我介绍。（**示例公司原题**｜【稳】结构清晰、结尾一句话落在岗位要求上，被面试官认可）", "real": true },
+    { "id": 2, "dim": "D1", "star": 3, "text": "简历里这个项目你写「独立负责」，具体哪部分是你拍板、哪部分是团队做的？", "real": false },
+    { "id": 3, "dim": "D2", "star": 3, "text": "你写的「转化提升 20%」，分母是什么？基线怎么定的？（**示例公司原题**｜【改】只给了数值没讲清分母，被追问才补上）", "real": true },
+    { "id": 4, "dim": "D2", "star": 2, "text": "这个留存率从绝对值看是高还是低？如果要再提升，你会从哪几个方向入手？", "real": false },
+    { "id": 5, "dim": "D3", "star": 2, "text": "这个功能你选 workflow 而不是 agent，为什么？成本和兜底怎么考虑的？", "real": false },
+    { "id": 6, "dim": "D4", "star": 2, "text": "你们的评测集怎么建的？用哪些指标？badcase 怎么归因迭代？", "real": false },
+    { "id": 7, "dim": "D5", "star": 3, "text": "这个产品的目标用户到底是谁？核心痛点动作是什么？为什么做这个不做那个？", "real": false },
+    { "id": 8, "dim": "D6", "star": 2, "text": "单个用户每月成本大概多少？怎么算的？放量后会不会爆？", "real": false },
+    { "id": 9, "dim": "D7", "star": 3, "text": "〔Case〕给你一个新场景，让你从 0 设计一个 AI 功能，你会怎么拆、先做什么？（**示例公司原题**｜【翻】先给了方案没先分析，被面试官打断要求重来）", "real": true },
+    { "id": 10, "dim": "D8", "star": 1, "text": "你所在的行业，AI 落地的顺序大概是什么？为什么是这个顺序？", "real": false },
+    { "id": 11, "dim": "D9", "star": 1, "text": "跨团队协作时需求被下游否了，你怎么推进？", "real": false },
+    { "id": 12, "dim": "D10", "star": 3, "text": "你为什么选这个岗位 / 这家公司？拿了哪些 offer？（**示例公司原题**｜【稳】动机单一清晰，有事实依据）", "real": true },
+    { "id": 13, "dim": "D11", "star": 1, "text": "你有什么想问我的？（准备 2 个针对团队/产品的具体问题）", "real": false }
+  ],
+  "reviews": [
+    {
+      "id": "demo",
+      "title": "示例公司 · AI 产品经理一面 · 实战复盘（示例卡）",
+      "tag": "复盘 示例",
+      "date": "示例",
+      "hl": "orange",
+      "nav": "示例公司一面复盘",
+      "md": "> 这是一张**示例复盘卡**，用来演示结构，所有公司、数字、人物均为虚构。真实使用时请用本 skill 从你的面试录音稿自动生成，或照此结构手写。复盘对象：示例公司 AI 产品经理一面（约 30 分钟，产品向面试官）。按 D1–D11 维度归类面试官实际问到的问题。\n\n### 一句话总览\n本场约 4 个有效问题｜**D2 数据口径 + D7 Case 是主战场**｜高光＝自我介绍落点准（D1）｜最大失分＝Case 题先给方案没先分析（D7）。\n\n### D1 归属与权责（L1 事实）\n- **[自我介绍]** 结构：背景 → 两段项目 → 三点优势 → 岗位适配，结尾一句话命中岗位要求。**【稳】**对应题库 **Q1**。\n\n### D2 数据口径（L1 事实）\n- **[转化提升 20% 的分母是什么？]** → 第一次只给了数值，被追问才补上分母与基线。**【改】**数字一定要带分母，别等追问。对应题库 **Q3**。\n\n### D7 开放 / Case 题（L3 思维）\n- **[从 0 设计一个 AI 功能]** → !!一上来就给方案!!，面试官打断要求「先说你怎么想的」。**【翻·本场最大失分】**违反先分析后方案：应先拆场景与链路、定位瓶颈，再给方案。对应题库 **Q9**。\n\n### D10 动机与职业发展（L5 动机）\n- **[为什么选这个岗位]** → 动机单一、有事实依据。**【稳】**对应题库 **Q12**。\n\n### 三个最该改进的点（下一面必做）\n1. **Case 题先分析后方案**：拿到题先停 2 秒，拆成环节 + 指出瓶颈，再给方案。\n2. **数字必带分母**：所有指标主动带上分母和基线，不等追问。\n3. **准备进攻式反问**：针对团队/产品问 2 个具体问题。"
+    }
+  ],
+  "realIndex": [
+    {
+      "co": "示例公司 · AI 产品经理一面",
+      "key": "示例公司",
+      "rid": "demo",
+      "date": "示例",
+      "n": "示例场次（全虚构）· 产品向面试官 · 约 30 分钟。火力集中在 D2 数据口径与 D7 Case，高光在 D1 自我介绍。",
+      "dims": [
+        { "d": "D1", "t": "归属与权责", "items": [ { "id": 1, "t": "自我介绍", "f": "稳" } ] },
+        { "d": "D2", "t": "数据口径", "items": [ { "id": 3, "t": "转化提升 20% 的分母是什么？", "f": "改" } ] },
+        { "d": "D7", "t": "开放 / Case 题", "items": [ { "id": 9, "t": "从 0 设计一个 AI 功能", "f": "翻" } ] },
+        { "d": "D10", "t": "动机与职业发展", "items": [ { "id": 12, "t": "为什么选这个岗位 / 公司？", "f": "稳" } ] }
+      ]
+    }
+  ]
+}
+</script>
+<script>
+/* ============ 数据：来自上方内嵌 JSON（单一数据源，由 interview-bank.json 同步） ============ */
+const BANK = JSON.parse(document.getElementById('bankData').textContent);
+const CATS = BANK.dims.map(d=>({id:d.id,title:d.title,tag:d.tag,desc:d.desc,
+  qs:BANK.questions.filter(q=>q.dim===d.id).map(q=>q.real?[q.id,q.star,q.text,1]:[q.id,q.star,q.text])}));
+const QIDS=CATS.reduce((a,c)=>a.concat(c.qs.map(q=>q[0])),[]).sort((a,b)=>a-b);
+/* 参考型章节（原文渲染，不需答题） */
+const REF_CLASSIFY = `### 分类逻辑
+不按"问题内容"分，按 **面试官想验证什么** 分。5 个验证层递进（先验真→再验专业→再验思维→再验协作→最后验动机），同层内互斥。
+
+**L1 事实核验层**（先确认简历是不是真的）
+- **D1 归属与权责**：这事谁拍板、团队几人、你产出了什么交付物、哪部分不是你做的
+- **D2 数据口径**：分母是什么、怎么埋点、基线是谁、哪个环节流失、还能怎么提升
+
+**L2 专业能力层**（验证 AI PM 手艺）
+- **D3 技术方案与选型**：workflow vs agent、模型选型、Prompt、成本、降级兜底
+- **D4 评测与质量**：评测集、指标、badcase 归因、幻觉测试
+- **D5 产品定义与价值**：用户是谁、痛点动作、为什么做这个不做那个、差异点
+
+**L3 商业与思维层**（验证判断力）
+- **D6 商业与成本**：单位成本、定价、ROI、放量节奏、付费设计
+- **D7 开放 / Case 题**：假设场景设计、定价、增长、0-1 品类判断
+- **D8 行业认知**：行业应用地图、玩家路线差异、技术与落地顺序
+
+**L4 协作执行层**
+- **D9 项目推进与协作**：跨团队/供应商、优先级冲突、需求被否、排期风险
+
+**L5 动机与人层**
+- **D10 动机与职业发展**：为什么这个岗/公司、转正、offer、3 年规划
+- **D11 个人特质**：兴趣爱好、MBTI、优缺点、抗压、学习方式
+
+> 规律：同一套 D1–D11，不同面试官的火力分布差异很大——业务向偏爱 D5/D6（用户与钱），技术向偏爱 D3/D4，HR 向偏爱 D10/D11。技术细节常靠简历关键词触发、不主动展开。**每场的真实落位与命中维度，见第二章顶部「真题索引」和各「实战复盘」卡片。**`;
+const REF_THINK = `拿到任何问题，前 5 秒只做一件事：**定性**。定性错了，结构一定错。
+
+### 第一步：定性（决定答题结构）
+- **事实题**（你做了什么、数字多少）→ 验真 → 走「短结论 + 证据」
+- **设计题 / Case 题**（怎么做、怎么解）→ 看思维过程 → **必须先分析后方案**
+- **判断题**（你怎么看、有没有前途）→ 看行业认知与立场 → 走「先给立场 + 三条依据」
+- **动机题**（为什么、想做什么）→ 看匹配度与稳定性 → 走「事实 + 判断 + 我能补的」
+
+### 第二步：四维扫描（口诀：链 · 人 · 证 · 界）
+- **链｜链路在哪**：拆成有先后的环节（输入→处理→输出→反馈），指出瓶颈在哪个节点、属于算法/工程/产品问题。**设计/Case 题永远第一个想这一维。**
+- **人｜谁的问题**：谁是用户、谁拍板、面试官为什么此刻问这个（验真？找共识？挖短板？）。意图决定你讲哪一半。
+- **证｜证据是什么**：一个带分母的数字 + 一个能放出画面的例子（把抽象结论换成具体场景）。
+- **界｜边界在哪**：成本上限、能力上限、不做什么、失败怎么兜底、结论在什么条件下不成立。主动给边界＝诚实且资深。
+
+四维不必都讲，但都要**扫过**。扫完再开口——停 2 秒是加分的，抢答是减分的。`;
+const REF_ANSWER = `### 主模板（设计题 / Case 题 / 优化题通用，5 段式）
+1. **对齐**（1 句）：确认边界或口径——"我理解这个问题是……，我按 XX 场景来答，可以吗"
+2. **拆解**（2–3 句）："我把它拆成 A / B / C 三个环节"——先给结构，不给答案
+3. **定位**（1–2 句）："其中 B 是瓶颈，因为……；A 属于工程问题、C 属于模型问题"
+4. **方案与取舍**（2–3 句）：针对瓶颈给动作，**并说为什么不选另一个方案**
+5. **证据 + 边界**（1–2 句）：带分母的数字或真实 badcase 收尾，再加前提与例外
+
+> 核心纪律：**第 4 步之前不许出现方案。** 设计/Case 题最常见的失分就是一上来就给方案——先分析后方案，记死。
+
+### 项目介绍模板（3 分钟，只讲两个功能）
+1. **一句话结论**：产品是什么、我做了什么（动词降级：我们做了 X，我负责其中 Y）
+2. **用户动作型痛点**：不说抽象结论，说一个能放出画面的具体场景（谁、在什么情境下、被什么卡住）
+3. **互补框架**："重点讲两个功能——前者解决 A，后者解决 B"
+4. **各展开一层机制**：workflow 怎么走、Prompt 改了什么、关键参数为什么这么定
+5. **3–4 个最硬数字收口**：每个数字都能说出分母（渗透率、留存、成本降幅、无效输出降幅……）
+
+### 事实/数字题（20 秒答完）
+口径 → 数值 → 一句归因 → 停。被追问再展开，不要一次说完。
+
+### 判断/行业题
+立场 → 三条依据（技术成熟度 / 成本结构 / 场景刚性）→ 一个反面观点 → 我的落点。
+> **不要连续两次说"我了解不多"**——承认一次，后面用可推导的逻辑接着答。
+
+### 动机题
+我看到的事实 → 我的判断 → 我已经做了什么 → 我想补什么。不评价旧团队，不说"想学习"。
+
+### 禁用词（说出口就扣可信度）
+\`闭环\` \`横向\` \`建设\` \`赋能\` \`精细化\` \`智能感\` \`打造\` \`全面\` \`抑制幻觉\` \`提升体验\`
+每个抽象词后面必须能接"具体表现是什么"，接不上就换成机制描述。
+
+### 出口自检（说完前在心里过一遍）
+- 先分析后方案了吗？
+- 数字带分母了吗？
+- "我负责"守得住吗？守不住降级成"我们做了 X，我负责 Y"。
+- 有一个能放出画面的具体例子吗？
+- 听起来像背的吗？允许自己"嗯……我想一下"。`;
+/* ============ 迷你 Markdown 解析器 ============ */
+function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function inline(s){
+  return s
+    .replace(/`([^`]+)`/g,(m,c)=>'<code>'+c+'</code>')
+    .replace(/(\*\*)?Q(\d{1,4})\1/g,'<a class="qjump" data-qid="q$2" href="#q$2">Q$2</a>')
+    .replace(/==([bopr])\|([^=]*)==/g,'<span class="hl hl-$1">$2</span>')
+    .replace(/!!([^!]+)!!/g,'<span class="dgr">$1</span>')
+    .replace(/\*\*([^*]+)\*\*/g,'<strong>$1</strong>')
+    .replace(/(^|[^*])\*([^*\n]+)\*/g,'$1<em>$2</em>')
+    .replace(/\[([^\]]+)\]\(([^)]+)\)/g,'<a href="$2" target="_blank" rel="noopener">$1</a>')
+    .replace(/【(亮|稳|改|漏|翻)([^】]*)】/g,function(m,f,rest){
+      var cls={'亮':'f-star','稳':'f-ok','改':'f-fix','漏':'f-miss','翻':'f-fail'}[f];
+      return '<span class="rflag '+cls+'">'+f+'</span>'+rest.replace(/^[·：:]\s*/,'');
+    })
+    .replace(/<strong>(<span class="rflag f-(?:fix|miss|fail)")/g,'<strong class="dgr-strong">$1')
+    .replace(/<strong>(<span class="rflag f-(?:star|ok)")/g,'<strong class="pos-strong">$1')
+    .replace(/｜/g,'<span class="vsep">｜</span>');
+}
+function liWrap(c){return '<li'+(/rflag f-(fail|miss)/.test(c)?' class="danger-block"':'')+'>'+c+'</li>';}
+/* 复盘条目拆分：问题（领头加粗）→ 答案 → 点评（含 flag/题号），分点缩进 */
+function reviewItem(c){
+  if(c.indexOf('→')<0) return liWrap(c);
+  const ai=c.indexOf('→');
+  const q=c.slice(0,ai).trim();
+  let rest=c.slice(ai+1).trim();
+  let answer=rest,concl='';
+  const fi=rest.search(/<strong><span class="rflag|<strong>【/);
+  if(fi>=0){answer=rest.slice(0,fi).trim();concl=rest.slice(fi).trim();}
+  let sub='<ul class="rv-sub">';
+  if(answer.replace(/<[^>]*>/g,'').replace(/[。、\s]/g,'')) sub+='<li class="rv-a">'+answer+'</li>';
+  if(concl){const cd=/rflag f-(fail|miss)/.test(concl);sub+='<li class="rv-c'+(cd?' danger-block':'')+'">'+concl+'</li>';}
+  sub+='</ul>';
+  return '<li class="rv-item"><div class="rv-q">'+q+'</div>'+sub+'</li>';
+}
+function mdToHtml(md,opts){
+  opts=opts||{};
+  if(!md||!md.trim())return '';
+  const lines=esc(md).split('\n');let html='',i=0;
+  while(i<lines.length){
+    let l=lines[i];
+    if(/^```/.test(l)){let code='';i++;while(i<lines.length&&!/^```/.test(lines[i])){code+=lines[i]+'\n';i++;}i++;html+='<pre><code>'+code+'</code></pre>';continue;}
+    let h=l.match(/^(#{1,4})\s+(.*)/);
+    if(h){const n=h[1].length;html+='<h'+n+'>'+inline(h[2])+'</h'+n+'>';i++;continue;}
+    if(/^&gt;\s?/.test(l)){let bq='';while(i<lines.length&&/^&gt;\s?/.test(lines[i])){bq+=lines[i].replace(/^&gt;\s?/,'')+' ';i++;}html+='<blockquote>'+inline(bq.trim())+'</blockquote>';continue;}
+    if(/^\s*[-*+]\s+/.test(l)){let items='';while(i<lines.length&&/^\s*[-*+]\s+/.test(lines[i])){const c=inline(lines[i].replace(/^\s*[-*+]\s+/,''));items+=opts.review?reviewItem(c):liWrap(c);i++;}html+='<ul>'+items+'</ul>';continue;}
+    if(/^\s*\d+\.\s+/.test(l)){let items='';while(i<lines.length&&/^\s*\d+\.\s+/.test(lines[i])){items+=liWrap(inline(lines[i].replace(/^\s*\d+\.\s+/,'')));i++;}html+='<ol>'+items+'</ol>';continue;}
+    if(/^\s*---\s*$/.test(l)){html+='<hr>';i++;continue;}
+    if(l.trim()===''){i++;continue;}
+    let para=l;while(i+1<lines.length&&lines[i+1].trim()!==''&&!/^(#{1,4}\s|&gt;|\s*[-*+]\s|\s*\d+\.\s|```|\s*---)/.test(lines[i+1])){para+='<br>'+lines[i+1];i++;}
+    const ph=inline(para);
+    html+='<p'+(/rflag f-(fail|miss)/.test(ph)?' class="danger-block"':'')+'>'+ph+'</p>';i++;
+  }
+  return html;
+}
+/* ============ 存储 ============ */
+const LS_KEY='interview_answers_v1';
+const LS_TS='interview_saved_at';
+let store={};
+try{store=JSON.parse(localStorage.getItem(LS_KEY)||'{}');}catch(e){store={};}
+function saveNow(silent){
+  try{
+    localStorage.setItem(LS_KEY,JSON.stringify(store));
+    const now=new Date();
+    localStorage.setItem(LS_TS,now.toISOString());
+    updateStatus(now);
+    if(!silent)toast('已保存 · '+fmt(now));
+  }catch(e){toast('保存失败：'+e.message);}
+}
+function fmt(d){const p=n=>String(n).padStart(2,'0');return p(d.getHours())+':'+p(d.getMinutes())+':'+p(d.getSeconds());}
+function updateStatus(d){
+  const s=document.getElementById('status');
+  s.innerHTML=d?('已保存 <b>'+fmt(d)+'</b>'):'未保存';
+}
+/* ============ 渲染 ============ */
+const wrap=document.getElementById('wrap');
+function refCard(num,title,tag,md){
+  const c=document.createElement('div');c.className='card';
+  c.innerHTML='<h2><span class="tag">'+tag+'</span>'+title+'</h2><div class="ref'+(num===0?' review':'')+'">'+mdToHtml(md,{review:num===0})+'</div>';
+  foldHeadings(c.querySelector('.ref'));
+  return c;
+}
+/* 每一级标题可单独折叠：点标题，收起/展开其后到下一个同级或更高级标题之间的内容 */
+function foldHeadings(ref){
+  if(!ref)return;
+  [...ref.children].forEach(node=>{
+    const m=node.tagName&&node.tagName.match(/^H([1-4])$/);if(!m)return;
+    const lv=+m[1];node.classList.add('fold-h');
+    node.addEventListener('click',()=>{
+      const col=node.classList.toggle('collapsed');
+      let sib=node.nextElementSibling;
+      while(sib){
+        const sm=sib.tagName&&sib.tagName.match(/^H([1-4])$/);
+        if(sm&&+sm[1]<=lv)break;
+        sib.style.display=col?'none':'';
+        sib=sib.nextElementSibling;
+      }
+    });
+  });
+}
+/* 题号按钮点击 → 跳转对应题目（全局委托，仅注册一次） */
+document.addEventListener('click',e=>{const a=e.target.closest('a.qjump');if(a){e.preventDefault();jumpToQ(a.dataset.qid);}});
+function starStr(s){return '★'.repeat(s);}
+/* 真题判定：第4位 flag===1，或题干含"原题"（转录稿原句）。真题权重最高 */
+function isReal(q){return q[3]===1 || /原题/.test(q[2]||'');}
+/* 优先级排序：真题 > 高频(3) > 较可能(2) > 深挖(1)；同级保持录入顺序（稳定排序）。
+   新真题归纳时只需 append，渲染时自动落到正确位置，无需手动重排。 */
+function prioCmp(a,b){return (isReal(b)-isReal(a)) || (b[1]-a[1]);}
+function questionCard(cat){
+  const c=document.createElement('div');c.className='card';c.id=cat.id;
+  let inner='<h2><span class="tag">'+cat.tag+'</span>'+cat.id+' · '+cat.title+'</h2>';
+  inner+='<div class="cat-desc">'+cat.desc+'</div>';
+  c.innerHTML=inner;
+  cat.qs.slice().sort(prioCmp).forEach(q=>{c.appendChild(qItem(q));});
+  return c;
+}
+function qItem(q){
+  const [n,s,text]=q;const id='q'+n;const val=store[id]||'';const real=isReal(q);
+  const el=document.createElement('div');el.className='q'+(val.trim()?' answered':'')+(real?' is-real':'');el.dataset.id=id;el.id=id;
+  const lvl='l'+s;const lvlTxt=s===3?'高频':(s===2?'较可能':'深挖');
+  // 真题备注（原题来源/点评）：从题干末尾的（…原题…｜…）括号剥离，换行成小一号灰字
+  let main=text,note='';
+  if(real){const mm=text.match(/^([\s\S]*?)（([^（）]*(?:原题|｜)[\s\S]*?)）\s*$/);if(mm){main=mm[1];note=mm[2];}}
+  el.innerHTML=
+    '<div class="q-head"><div class="q-num">'+n+'</div><div class="q-body">'+
+      '<div class="q-text">'+(real?'<span class="lvl real">真题</span>':'')+'<span class="lvl '+lvl+'">'+lvlTxt+'</span>'+inline(esc(main))+
+      '<span class="stars">'+starStr(s)+'</span></div>'+
+      (note?'<div class="q-note">｜ '+inline(esc(note))+'</div>':'')+
+    '</div></div>'+
+    '<div class="ans">'+
+      '<div class="tabs"><button class="tab on" data-t="edit">编辑</button>'+
+      '<button class="tab" data-t="prev">预览</button></div>'+
+      '<textarea class="inp" placeholder="在这里写你的答案，支持 Markdown（**加粗**、- 列表、# 标题、&gt; 引用、`代码`）">'+esc(val)+'</textarea>'+
+      '<div class="preview" style="display:none"></div>'+
+      '<div class="hint">支持 Markdown · 输入即暂存本地 · 每 5 分钟自动保存</div>'+
+    '</div>';
+  const ta=el.querySelector('textarea');
+  const pv=el.querySelector('.preview');
+  const [tabE,tabP]=el.querySelectorAll('.tab');
+  let timer;
+  ta.addEventListener('input',()=>{
+    store[id]=ta.value;
+    el.classList.toggle('answered',!!ta.value.trim());
+    clearTimeout(timer);timer=setTimeout(()=>{try{localStorage.setItem(LS_KEY,JSON.stringify(store));}catch(e){}updateProgress();},600);
+  });
+  tabE.addEventListener('click',()=>{tabE.classList.add('on');tabP.classList.remove('on');ta.style.display='';pv.style.display='none';});
+  tabP.addEventListener('click',()=>{tabP.classList.add('on');tabE.classList.remove('on');pv.innerHTML=mdToHtml(ta.value);ta.style.display='none';pv.style.display='';});
+  return el;
+}
+/* ============ 真题索引数据（公司 → 维度 → 真题） ============ */
+/* flag：亮=最亮 稳=守住 改=待改 漏=漏答 翻=翻车 */
+const REAL_INDEX=BANK.realIndex;
+const FLAGMAP={'亮':'star','稳':'ok','改':'fix','漏':'miss','翻':'fail'};
+function rflag(f){return f?('<span class="rflag f-'+(FLAGMAP[f]||'ok')+'">'+f+'</span>'):'';}
+function buildRealIndex(){
+  const box=document.createElement('div');box.className='ridx';
+  let total=0;REAL_INDEX.forEach(c=>c.dims.forEach(d=>total+=d.items.length));
+  let h='<div class="ridx-hd">🎯 真题索引 · 已面 '+REAL_INDEX.length+' 场 / '+total+' 道真题</div><div class="ridx-bd">';
+  h+='<div class="ridx-tools"><button data-ra="open">全部展开</button><button data-ra="close">全部折叠</button>'+
+     '<span class="ridx-lg">'+rflag('亮')+'最亮 '+rflag('稳')+'守住 '+rflag('改')+'待改 '+
+     rflag('漏')+'漏答 '+rflag('翻')+'翻车</span></div>';
+  REAL_INDEX.forEach((c,ci)=>{
+    let n=0;c.dims.forEach(d=>n+=d.items.length);
+    h+='<div class="rco'+(ci===0?'':' closed')+'">'+
+       '<div class="rco-hd">'+c.co+'<span class="rco-date">'+c.date+'</span>'+
+       '<span class="rco-n">'+n+' 题 · '+c.dims.length+' 维度</span></div><div class="rco-bd">';
+    if(c.n)h+='<div class="rco-note">'+c.n+'</div>';
+    c.dims.forEach(d=>{
+      h+='<div class="rdim"><div class="rdim-hd"><span class="rdim-n">'+d.d+'</span>'+d.t+
+         '<span class="rdim-c">'+d.items.length+'</span></div><div class="rdim-bd">';
+      d.items.forEach(it=>{
+        h+='<a class="rq" href="#q'+it.id+'" data-qid="q'+it.id+'">'+
+           '<span class="rq-id">Q'+it.id+'</span><span>'+it.t+rflag(it.f)+'</span></a>';
+      });
+      h+='</div></div>';
+    });
+    h+='</div></div>';
+  });
+  box.innerHTML=h+'</div>';
+  return box;
+}
+function jumpToQ(qid){
+  const el=document.getElementById(qid);
+  if(!el){toast('题库中暂无 '+qid.toUpperCase());return;}
+  const card=el.closest('.card');
+  if(card&&card.classList.contains('collapsed'))card.classList.remove('collapsed');
+  el.scrollIntoView({behavior:'smooth',block:'center'});
+  el.classList.remove('flash');void el.offsetWidth;el.classList.add('flash');
+  setTimeout(()=>el.classList.remove('flash'),1900);
+}
+function bindRealIndex(box){
+  box.querySelector('.ridx-hd').addEventListener('click',()=>box.classList.toggle('closed'));
+  box.querySelectorAll('.rco-hd').forEach(hd=>hd.addEventListener('click',e=>{
+    e.stopPropagation();hd.parentElement.classList.toggle('closed');}));
+  box.querySelectorAll('.rdim-hd').forEach(hd=>hd.addEventListener('click',e=>{
+    e.stopPropagation();hd.parentElement.classList.toggle('closed');}));
+  box.querySelectorAll('[data-ra]').forEach(b=>b.addEventListener('click',e=>{
+    e.stopPropagation();const open=b.dataset.ra==='open';
+    box.querySelectorAll('.rco,.rdim').forEach(x=>x.classList.toggle('closed',!open));}));
+  box.querySelectorAll('a.rq').forEach(a=>a.addEventListener('click',e=>{
+    e.preventDefault();e.stopPropagation();jumpToQ(a.dataset.qid);}));
+}
+/* ============ 组装页面 ============ */
+// 实战复盘卡片（数据驱动：顺序 = interview-bank.json 的 reviews，新卡插最前即置顶）
+  BANK.reviews.forEach(r=>{const rc=refCard(0,r.title,r.tag,r.md);rc.id=r.id;wrap.appendChild(rc);});
+  // 一、分类
+const c1=refCard(1,'一、面试问题的维度分类','章节一',REF_CLASSIFY);c1.id='classify';wrap.appendChild(c1);
+// 二、题库（各维度卡片）
+const t2=document.createElement('div');t2.className='card';t2.id='bank';
+t2.innerHTML='<h2><span class="tag">章节二</span>二、模拟面试问题集（'+QIDS.length+' 题）</h2>'+
+  '<div class="cat-desc">按维度出题，源自简历关键词 + 真实面试真题 + 面试官当场反馈。每个维度内按优先级自动排序：'+
+  '<span class="lvl real">真题</span>（权重最高，转录稿原句）→ <span class="lvl l3">高频</span>必答 → <span class="lvl l2">较可能</span> → <span class="lvl l1">深挖</span>。新真题 append 即自动归位，无需手动重排。</div>';
+const ridxBox=buildRealIndex();t2.appendChild(ridxBox);
+wrap.appendChild(t2);
+bindRealIndex(ridxBox);
+CATS.forEach(c=>wrap.appendChild(questionCard(c)));
+// 三、四
+const c3=refCard(3,'三、通用快速思考框架','章节三',REF_THINK);c3.id='think';wrap.appendChild(c3);
+const c4=refCard(4,'四、结构化回答模板','章节四',REF_ANSWER);c4.id='answer';wrap.appendChild(c4);
+/* ============ 思维导图 ============ */
+function mmNode(node,depth){
+  const cls=depth===0?'mm-root':(depth===1?'mm-l1':'mm-l2');
+  const extra=node.lv?(' '+node.lv):'';
+  const note=node.note?('<span class="mm-note">'+inline(esc(node.note))+'</span>'):'';
+  let h='<div class="mm-item"><div class="node '+cls+extra+'">'+inline(esc(node.t))+note+'</div>';
+  if(node.c&&node.c.length){
+    h+='<div class="mm-col">'+node.c.map(ch=>'<div class="mm-row">'+mmNode(ch,depth+1)+'</div>').join('')+'</div>';
+  }
+  return h+'</div>';
+}
+function mindmap(root){
+  const d=document.createElement('div');d.className='mm';
+  d.innerHTML='<div class="mm-row">'+mmNode(root,0)+'</div>';return d;
+}
+function addMap(card,title,root){
+  const t=document.createElement('div');t.className='mm-title';t.textContent=title;
+  card.appendChild(t);card.appendChild(mindmap(root));
+}
+// 第一章：维度分类
+addMap(c1,'📌 思维导图 · 五层验证维度',{t:'面试维度分类',note:'按"面试官想验证什么"分，5 层递进',c:[
+  {t:'L1 事实核验层',note:'先确认简历是不是真的',c:[
+    {t:'D1 归属与权责',note:'谁拍板·团队几人·交付物·哪部分不是你'},
+    {t:'D2 数据口径',note:'分母·埋点·基线·流失·还能怎么提'}]},
+  {t:'L2 专业能力层',note:'验 AI PM 手艺',c:[
+    {t:'D3 技术方案与选型',note:'workflow vs agent·选型·成本·兜底'},
+    {t:'D4 评测与质量',note:'评测集·指标·badcase·幻觉'},
+    {t:'D5 产品定义与价值',note:'用户·痛点·为什么做·差异点'}]},
+  {t:'L3 商业与思维层',note:'验判断力',c:[
+    {t:'D6 商业与成本',note:'单位成本·定价·ROI·放量'},
+    {t:'D7 开放 / Case 题',note:'场景设计·0-1 判断'},
+    {t:'D8 行业认知',lv:'hot',note:'已知短板·必补'}]},
+  {t:'L4 协作执行层',c:[
+    {t:'D9 项目推进与协作',note:'跨团队·优先级·需求被否·排期'}]},
+  {t:'L5 动机与人层',c:[
+    {t:'D10 动机与职业发展',note:'为何此岗·转正·offer·规划'},
+    {t:'D11 个人特质',note:'兴趣·MBTI·优缺点·抗压·学习'}]}
+]});
+// 第三章：思考框架
+addMap(c3,'📌 思维导图 · 定性 + 四维扫描',{t:'快速思考框架',note:'前 5 秒只做一件事：定性',c:[
+  {t:'① 定性',note:'决定答题结构',c:[
+    {t:'事实题',note:'→ 短结论 + 证据'},
+    {t:'设计 / Case 题',lv:'hot',note:'→ 必须先分析后方案'},
+    {t:'判断题',note:'→ 先立场 + 三条依据'},
+    {t:'动机题',note:'→ 事实 + 判断 + 我能补的'}]},
+  {t:'② 四维扫描',note:'口诀：链·人·证·界',c:[
+    {t:'链｜链路在哪',lv:'warn',note:'拆环节找瓶颈·永远第一个想'},
+    {t:'人｜谁的问题',note:'谁用户·谁拍板·面试官意图'},
+    {t:'证｜证据是什么',note:'带分母数字 + 能放画面的例子'},
+    {t:'界｜边界在哪',note:'成本/能力上限·不做什么·兜底·例外'}]}
+]});
+// 第四章：回答模板
+addMap(c4,'📌 思维导图 · 四类回答结构',{t:'结构化回答模板',c:[
+  {t:'主模板 5 段式',note:'设计/Case/优化通用',c:[
+    {t:'1 对齐',note:'确认边界或口径'},
+    {t:'2 拆解',note:'给 A/B/C 结构·不给答案'},
+    {t:'3 定位',note:'指出瓶颈 + 问题归类'},
+    {t:'4 方案与取舍',lv:'hot',note:'第 4 步前不许出现方案'},
+    {t:'5 证据 + 边界',note:'带分母数字/真实 badcase 收尾'}]},
+  {t:'项目介绍 3 分钟',note:'只讲两个功能',c:[
+    {t:'一句话结论',note:'动词降级：我们做 X·我负责 Y'},
+    {t:'用户动作型痛点',note:'一天 250 条视频还得自己翻'},
+    {t:'互补框架',note:'前者解决查找·后者了解重点'},
+    {t:'各展开一层机制',note:'workflow/Prompt/参数为何这么定'},
+    {t:'3-4 个硬数字收口',note:'每个都能说出分母'}]},
+  {t:'分题型话术',c:[
+    {t:'事实题 20 秒',note:'口径→数值→归因→停'},
+    {t:'判断题',note:'立场→三依据→反面→落点'},
+    {t:'动机题',note:'看到事实→判断→做了什么→想补什么'}]},
+  {t:'自我约束',c:[
+    {t:'禁用词',lv:'hot',note:'闭环·赋能·打造·全面·抑制幻觉…'},
+    {t:'出口自检',note:'先分析?带分母?我负责守得住?有画面?像背的吗?'}]}
+]});
+/* ============ 卡片折叠 ============ */
+wrap.addEventListener('click',e=>{
+  const h=e.target.closest('.card > h2');
+  if(h && wrap.contains(h)) h.parentElement.classList.toggle('collapsed');
+});
+function setAllCards(collapse){document.querySelectorAll('#wrap .card').forEach(c=>c.classList.toggle('collapsed',collapse));}
+/* ============ 左侧目录 ============ */
+const sidebar=document.getElementById('sidebar');
+function buildSidebar(){
+  let h='<div class="side-tools"><button id="collapseAll">全部折叠</button><button id="expandAll">全部展开</button></div>';
+  h+='<div class="side-h">实战复盘</div>';
+  BANK.reviews.forEach(r=>{h+='<a class="hl-'+r.hl+'" href="#'+r.id+'">\u2605 '+r.nav+'</a>';});
+  h+='<div class="side-h">框架</div>';
+  h+='<a href="#classify">一、维度分类</a>';
+  h+='<div class="side-h">题库 · '+QIDS.length+' 题</div>';
+  h+='<a href="#bank">二、模拟面试问题集</a>';
+  CATS.forEach(c=>{h+='<a href="#'+c.id+'"><span class="ab">'+c.id+'</span>'+c.title+'（'+c.qs.length+'）</a>';});
+  h+='<div class="side-h">方法</div>';
+  h+='<a href="#think">三、思考框架</a><a href="#answer">四、回答模板</a>';
+  sidebar.innerHTML=h;
+  document.getElementById('collapseAll').addEventListener('click',()=>setAllCards(true));
+  document.getElementById('expandAll').addEventListener('click',()=>setAllCards(false));
+  // 窄屏点击条目后自动收起浮层
+  sidebar.querySelectorAll('a').forEach(a=>a.addEventListener('click',()=>{
+    if(window.matchMedia('(max-width:860px)').matches) document.body.classList.remove('nav-open');
+  }));
+}
+buildSidebar();
+/* 目录开关：宽屏切 nav-collapsed（挤压内容），窄屏切 nav-open（浮层） */
+document.getElementById('navToggle').addEventListener('click',()=>{
+  if(window.matchMedia('(max-width:860px)').matches) document.body.classList.toggle('nav-open');
+  else document.body.classList.toggle('nav-collapsed');
+});
+/* 滚动高亮当前区块 */
+const navLinks=[...sidebar.querySelectorAll('a[href^="#"]')];
+const spy=new IntersectionObserver(es=>{
+  es.forEach(en=>{if(en.isIntersecting){
+    const id=en.target.id;navLinks.forEach(a=>a.classList.toggle('cur',a.getAttribute('href')==='#'+id));
+  }});
+},{rootMargin:'-70px 0px -70% 0px'});
+BANK.reviews.map(r=>r.id).concat(['classify','bank','think','answer']).concat(CATS.map(c=>c.id)).forEach(id=>{const el=document.getElementById(id);if(el)spy.observe(el);});
+/* ============ 进度 ============ */
+function updateProgress(){
+  const total=QIDS.length;let done=0;
+  QIDS.forEach(n=>{if((store['q'+n]||'').trim())done++;});
+  document.getElementById('progbar').style.width=(done/total*100)+'%';
+}
+/* ============ Toast ============ */
+let toastTimer;
+function toast(msg){
+  const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');
+  clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove('show'),2200);
+}
+/* ============ 导出 ============ */
+function exportData(){
+  let md='# 面试答案备份\n\n> 导出时间：'+new Date().toLocaleString()+'\n\n';
+  const map={};CATS.forEach(c=>c.qs.forEach(q=>map[q[0]]={cat:c.id+' '+c.title,text:q[2]}));
+  let cur='';
+  QIDS.forEach(n=>{
+    const v=(store['q'+n]||'').trim();if(!v)return;
+    if(map[n].cat!==cur){cur=map[n].cat;md+='\n## '+cur+'\n\n';}
+    md+='**Q'+n+'. '+map[n].text+'**\n\n'+v+'\n\n---\n\n';
+  });
+  const blob=new Blob([md],{type:'text/markdown;charset=utf-8'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download='面试答案备份_'+new Date().toISOString().slice(0,10)+'.md';
+  a.click();URL.revokeObjectURL(a.href);toast('已导出 Markdown 备份');
+}
+/* ============ 导出 PDF（浏览器打印 / 另存为 PDF） ============ */
+function expandForPrint(){
+  document.querySelectorAll('#wrap .card.collapsed').forEach(c=>c.classList.remove('collapsed'));
+  document.querySelectorAll('.ridx.closed,.rco.closed,.rdim.closed').forEach(x=>x.classList.remove('closed'));
+  document.querySelectorAll('.ref .fold-h.collapsed').forEach(h=>{
+    h.classList.remove('collapsed');const hm=h.tagName.match(/^H([1-4])$/);let sib=h.nextElementSibling;
+    while(sib){const sm=sib.tagName&&sib.tagName.match(/^H([1-4])$/);if(sm&&+sm[1]<=+hm[1])break;sib.style.display='';sib=sib.nextElementSibling;}
+  });
+  document.querySelectorAll('#wrap .q').forEach(q=>{
+    const ta=q.querySelector('textarea.inp'),pv=q.querySelector('.preview'),ans=q.querySelector('.ans');
+    if(!ta||!pv||!ans)return;
+    if(ta.value.trim()){pv.innerHTML=mdToHtml(ta.value);pv.style.display='';ta.style.display='none';}
+    else{ans.style.display='none';}
+  });
+  document.querySelectorAll('#wrap > .card').forEach(card=>{
+    if(card.querySelector('.ref.review')||['classify','bank','think','answer'].includes(card.id))card.classList.add('chap-break');
+  });
+}
+function restoreAfterPrint(){
+  document.body.classList.remove('printing');
+  document.querySelectorAll('#wrap > .card.chap-break').forEach(c=>c.classList.remove('chap-break'));
+  document.querySelectorAll('#wrap .q').forEach(q=>{
+    const ta=q.querySelector('textarea.inp'),pv=q.querySelector('.preview'),ans=q.querySelector('.ans');
+    if(ans)ans.style.display='';if(pv)pv.style.display='none';if(ta)ta.style.display='';
+    const tb=q.querySelectorAll('.tab');if(tb[0])tb[0].classList.add('on');if(tb[1])tb[1].classList.remove('on');
+  });
+}
+function printPDF(){document.body.classList.add('printing');expandForPrint();setTimeout(()=>window.print(),80);}
+window.addEventListener('afterprint',restoreAfterPrint);
+/* ============ 绑定 + 初始化 ============ */
+document.getElementById('saveBtn').addEventListener('click',()=>saveNow(false));
+const expMenu=document.getElementById('expMenu');
+document.getElementById('exportBtn').addEventListener('click',e=>{e.stopPropagation();expMenu.classList.toggle('show');});
+document.getElementById('expMd').addEventListener('click',()=>{expMenu.classList.remove('show');exportData();});
+document.getElementById('expPdf').addEventListener('click',()=>{expMenu.classList.remove('show');printPDF();});
+document.addEventListener('click',()=>expMenu.classList.remove('show'));
+/* ============ 格式工具栏：加粗 / 四色荧光笔（作用于当前答案输入框的选区） ============ */
+let lastTA=null,hlMode=false,hlColor='b';
+document.getElementById('wrap').addEventListener('focusin',e=>{if(e.target.classList&&e.target.classList.contains('inp'))lastTA=e.target;});
+function wrapSel(pre,post){
+  let ta=lastTA;
+  if(!ta||!ta.classList.contains('inp')){const a=document.activeElement;ta=(a&&a.classList&&a.classList.contains('inp'))?a:null;}
+  if(!ta){toast('先点进某道题的答案框并选中文本');return;}
+  const s=ta.selectionStart,e=ta.selectionEnd;
+  if(s==null||s===e){toast('先选中要格式化的文本');return;}
+  const v=ta.value;ta.value=v.slice(0,s)+pre+v.slice(s,e)+post+v.slice(e);
+  ta.dispatchEvent(new Event('input',{bubbles:true}));
+  ta.focus();ta.setSelectionRange(s,e+pre.length+post.length);
+}
+const fmtBold=document.getElementById('fmtBold');
+fmtBold.addEventListener('click',e=>{e.stopPropagation();wrapSel('**','**');fmtBold.classList.add('on');setTimeout(()=>fmtBold.classList.remove('on'),250);});
+const fmtHl=document.getElementById('fmtHl'),hlPalette=document.getElementById('hlPalette');
+function setHlMode(on){hlMode=on;document.body.classList.toggle('hl-mode',on);fmtHl.classList.toggle('on',on);hlPalette.classList.toggle('show',on);}
+fmtHl.addEventListener('click',e=>{e.stopPropagation();setHlMode(!hlMode);});
+hlPalette.querySelectorAll('button').forEach(b=>b.addEventListener('click',e=>{
+  e.stopPropagation();hlColor=b.dataset.c;hlPalette.querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));
+}));
+hlPalette.querySelector('[data-c="b"]').classList.add('on');
+document.addEventListener('mouseup',()=>{
+  if(!hlMode)return;const ta=document.activeElement;
+  if(ta&&ta.classList&&ta.classList.contains('inp')&&ta.selectionStart!==ta.selectionEnd){lastTA=ta;wrapSel('=='+hlColor+'|','==');}
+});
+// 5 分钟自动保存
+setInterval(()=>saveNow(true),5*60*1000);
+// 离开页面前保存
+window.addEventListener('beforeunload',()=>{try{localStorage.setItem(LS_KEY,JSON.stringify(store));}catch(e){}});
+// 恢复上次保存时间
+const savedAt=localStorage.getItem(LS_TS);
+updateStatus(savedAt?new Date(savedAt):null);
+updateProgress();
+</script>
+</body>
+</html>
