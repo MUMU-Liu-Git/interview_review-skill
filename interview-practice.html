@@ -447,13 +447,18 @@
     </div>
   </div>
   <span class="status" id="status">未保存</span>
+  <span class="meta" id="fileStatus"></span>
   <div class="exp-wrap">
     <button class="btn btn-ghost" id="exportBtn">导出 ▾</button>
     <div class="exp-menu" id="expMenu">
+      <button id="linkFileBtn">关联本地文件（自动保存）</button>
+      <button id="impJson">导入答案 JSON</button>
+      <button id="expJson">导出答案 JSON</button>
       <button id="expMd">导出 Markdown</button>
       <button id="expPdf">导出 PDF（打印）</button>
     </div>
   </div>
+  <button class="btn btn-ghost" id="reconnectBtn" style="display:none">重新连接答案文件</button>
   <button class="btn btn-primary" id="saveBtn">保存答案</button>
 </header>
 <aside id="sidebar"></aside>
@@ -661,6 +666,8 @@ function mdToHtml(md,opts){
 const LS_KEY='interview_answers_v1';
 const LS_TS='interview_saved_at';
 let store={};
+const FS_OK='showSaveFilePicker' in window;
+let fileHandle=null,fileWriteTimer=null;
 try{store=JSON.parse(localStorage.getItem(LS_KEY)||'{}');}catch(e){store={};}
 function saveNow(silent){
   try{
@@ -668,6 +675,7 @@ function saveNow(silent){
     const now=new Date();
     localStorage.setItem(LS_TS,now.toISOString());
     updateStatus(now);
+    writeFile();
     if(!silent)toast('已保存 · '+fmt(now));
   }catch(e){toast('保存失败：'+e.message);}
 }
@@ -675,6 +683,82 @@ function fmt(d){const p=n=>String(n).padStart(2,'0');return p(d.getHours())+':'+
 function updateStatus(d){
   const s=document.getElementById('status');
   s.innerHTML=d?('已保存 <b>'+fmt(d)+'</b>'):'未保存';
+}
+/* ============ 本地文件持久化（File System Access API + JSON 导入导出兜底） ============ */
+/* 答案除存 localStorage（草稿缓存）外，可关联磁盘上一个真实 json 文件自动写入，
+   清缓存/换浏览器不丢、任何工具可直接读。Chrome/Edge 自动写入，其它浏览器用导入导出。 */
+let _idb;
+function idbDB(){return _idb?Promise.resolve(_idb):new Promise((res,rej)=>{
+  const o=indexedDB.open('ivReview',1);
+  o.onupgradeneeded=()=>o.result.createObjectStore('kv');
+  o.onsuccess=()=>{_idb=o.result;res(_idb);};o.onerror=()=>rej(o.error);});}
+async function idbSet(k,v){const db=await idbDB();return new Promise((res,rej)=>{
+  const tx=db.transaction('kv','readwrite');tx.objectStore('kv').put(v,k);
+  tx.oncomplete=()=>res();tx.onerror=()=>rej(tx.error);});}
+async function idbGet(k){const db=await idbDB();return new Promise((res,rej)=>{
+  const r=db.transaction('kv','readonly').objectStore('kv').get(k);
+  r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error);});}
+async function writeFile(){
+  if(!fileHandle)return;
+  try{const w=await fileHandle.createWritable();await w.write(JSON.stringify(store,null,2));await w.close();}
+  catch(e){toast('写入文件失败：'+e.message);}
+}
+function scheduleFileWrite(){if(!fileHandle)return;clearTimeout(fileWriteTimer);fileWriteTimer=setTimeout(writeFile,1200);}
+async function ensurePerm(h,request){const opt={mode:'readwrite'};
+  if((await h.queryPermission(opt))==='granted')return true;
+  if(request&&(await h.requestPermission(opt))==='granted')return true;return false;}
+async function mergeFromHandle(h){
+  try{const f=await h.getFile();const t=(await f.text()).trim();if(t){store=Object.assign({},store,JSON.parse(t));
+    try{localStorage.setItem(LS_KEY,JSON.stringify(store));}catch(e){}}}catch(e){}
+}
+async function linkFile(){
+  try{
+    fileHandle=await window.showSaveFilePicker({suggestedName:'interview-answers.json',
+      types:[{description:'面试答案 JSON',accept:{'application/json':['.json']}}]});
+    await mergeFromHandle(fileHandle);
+    await idbSet('answersFile',fileHandle);
+    await writeFile();
+    rerenderAnswers();updateProgress();updateFileStatus();
+    document.getElementById('reconnectBtn').style.display='none';
+    toast('已关联本地文件，之后自动保存');
+  }catch(e){if(e.name!=='AbortError')toast('关联失败：'+e.message);}
+}
+async function reconnectFile(){
+  if(!fileHandle)return;
+  if(await ensurePerm(fileHandle,true)){
+    await mergeFromHandle(fileHandle);
+    rerenderAnswers();updateProgress();updateFileStatus();
+    document.getElementById('reconnectBtn').style.display='none';
+    toast('已重新连接答案文件');
+  }else{toast('未获得文件读写权限');}
+}
+async function restoreFileHandle(){
+  try{const h=await idbGet('answersFile');if(!h)return;fileHandle=h;updateFileStatus();
+    if((await h.queryPermission({mode:'readwrite'}))==='granted'){await mergeFromHandle(h);rerenderAnswers();updateProgress();}
+    else{document.getElementById('reconnectBtn').style.display='';}
+  }catch(e){}
+}
+function updateFileStatus(){const el=document.getElementById('fileStatus');if(el)el.textContent=fileHandle?('· 已关联 '+fileHandle.name):'';}
+function rerenderAnswers(){
+  document.querySelectorAll('#wrap .q').forEach(q=>{const id=q.dataset.id;const ta=q.querySelector('textarea.inp');
+    if(ta)ta.value=store[id]||'';q.classList.toggle('answered',!!(store[id]||'').trim());
+    const pv=q.querySelector('.preview');if(pv&&pv.style.display!=='none')pv.innerHTML=mdToHtml(ta?ta.value:'');});
+}
+function exportJSON(){
+  const blob=new Blob([JSON.stringify(store,null,2)],{type:'application/json;charset=utf-8'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download='interview-answers_'+new Date().toISOString().slice(0,10)+'.json';
+  a.click();URL.revokeObjectURL(a.href);toast('已导出答案 JSON');
+}
+function importJSON(){
+  const inp=document.createElement('input');inp.type='file';inp.accept='.json,application/json';
+  inp.onchange=()=>{const f=inp.files&&inp.files[0];if(!f)return;const r=new FileReader();
+    r.onload=()=>{try{store=Object.assign({},store,JSON.parse(r.result));
+      try{localStorage.setItem(LS_KEY,JSON.stringify(store));}catch(e){}
+      scheduleFileWrite();rerenderAnswers();updateProgress();toast('已从文件载入答案');}
+      catch(e){toast('文件解析失败：'+e.message);}};
+    r.readAsText(f);};
+  inp.click();
 }
 /* ============ 渲染 ============ */
 const wrap=document.getElementById('wrap');
@@ -745,7 +829,7 @@ function qItem(q){
   ta.addEventListener('input',()=>{
     store[id]=ta.value;
     el.classList.toggle('answered',!!ta.value.trim());
-    clearTimeout(timer);timer=setTimeout(()=>{try{localStorage.setItem(LS_KEY,JSON.stringify(store));}catch(e){}updateProgress();},600);
+    clearTimeout(timer);timer=setTimeout(()=>{try{localStorage.setItem(LS_KEY,JSON.stringify(store));}catch(e){}updateProgress();scheduleFileWrite();},600);
   });
   tabE.addEventListener('click',()=>{tabE.classList.add('on');tabP.classList.remove('on');ta.style.display='';pv.style.display='none';});
   tabP.addEventListener('click',()=>{tabP.classList.add('on');tabE.classList.remove('on');pv.innerHTML=mdToHtml(ta.value);ta.style.display='none';pv.style.display='';});
@@ -1032,6 +1116,16 @@ window.addEventListener('beforeunload',()=>{try{localStorage.setItem(LS_KEY,JSON
 const savedAt=localStorage.getItem(LS_TS);
 updateStatus(savedAt?new Date(savedAt):null);
 updateProgress();
+// 本地文件：按钮绑定 + 尝试重连上次关联的文件
+(function(){
+  const lb=document.getElementById('linkFileBtn');
+  if(!FS_OK){if(lb)lb.style.display='none';}
+  else if(lb)lb.addEventListener('click',()=>{expMenu.classList.remove('show');linkFile();});
+  document.getElementById('expJson').addEventListener('click',()=>{expMenu.classList.remove('show');exportJSON();});
+  document.getElementById('impJson').addEventListener('click',()=>{expMenu.classList.remove('show');importJSON();});
+  document.getElementById('reconnectBtn').addEventListener('click',reconnectFile);
+  if(FS_OK)restoreFileHandle();
+})();
 </script>
 </body>
 </html>
