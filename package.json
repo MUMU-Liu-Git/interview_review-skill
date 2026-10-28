@@ -1,0 +1,27 @@
+{
+  "name": "interview-review-skill",
+  "version": "2.0.0",
+  "private": true,
+  "description": "面试复盘与题库练习页（Vue 3 + Vite），数据放在 skill 外的数据目录",
+  "type": "module",
+  "license": "MIT",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test": "vitest run",
+    "check": "node scripts/check.mjs",
+    "deploy": "node scripts/deploy.mjs"
+  },
+  "engines": { "node": ">=20" },
+  "dependencies": {
+    "vue": "3.5.44"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "6.0.10",
+    "@vue/test-utils": "2.5.1",
+    "happy-dom": "21.0.4",
+    "vite": "8.3.5",
+    "vitest": "5.0.5"
+  }
+}

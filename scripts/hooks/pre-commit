@@ -1,0 +1,42 @@
+#!/bin/bash
+# 提交前隐私检查：暂存区新增内容或文件名里出现屏蔽词就拒绝提交。
+# 屏蔽词表放在仓库外（每行一个词，# 开头为注释），路径由 INTERVIEW_REVIEW_BLOCKLIST 指定。
+# 安装方法见 README「给贡献者：提交前隐私检查」
+set -u
+
+LIST="${INTERVIEW_REVIEW_BLOCKLIST:-}"
+if [[ -z "$LIST" || ! -f "$LIST" ]]; then
+  echo "⚠ pre-commit：未找到屏蔽词表（INTERVIEW_REVIEW_BLOCKLIST），跳过隐私检查" >&2
+  exit 0
+fi
+
+PATTERNS="$(mktemp)"
+trap 'rm -f "$PATTERNS"' EXIT
+grep -vE '^\s*(#|$)' "$LIST" > "$PATTERNS"
+[[ -s "$PATTERNS" ]] || exit 0
+
+hits=0
+# 1) 新增的行（不检查删除的行：删掉个人信息正是要做的事）
+added="$(git diff --cached -U0 --no-color --diff-filter=ACMR | grep -E '^\+[^+]' || true)"
+if [[ -n "$added" ]]; then
+  found="$(printf '%s\n' "$added" | grep -oiFf "$PATTERNS" | sort -u)"
+  if [[ -n "$found" ]]; then
+    echo "✗ 暂存内容里出现屏蔽词：" >&2
+    printf "%s\n" "$found" | sed "s/^/  /" >&2
+    echo "  定位：git diff --cached | grep -n -e '<词>'" >&2
+    hits=1
+  fi
+fi
+# 2) 文件名
+names="$(git diff --cached --name-only --diff-filter=ACMR | grep -iFf "$PATTERNS" || true)"
+if [[ -n "$names" ]]; then
+  echo "✗ 文件名里出现屏蔽词：" >&2
+  printf "%s\n" "$names" | sed "s/^/  /" >&2
+  hits=1
+fi
+
+if [[ $hits -ne 0 ]]; then
+  echo "个人数据应放在数据目录，不进仓库。确认是误报可用 git commit --no-verify 跳过。" >&2
+  exit 1
+fi
+exit 0

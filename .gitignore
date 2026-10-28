@@ -9,3 +9,10 @@ node_modules/
 
 # 个人数据（如果你想保留一份私有题库，命名为 *.private.json 不会被提交）
 *.private.json
+
+# 构建产物的防覆盖戳 / 首次构建时的旧页面备份
+.*.build.sha256
+*.before-build-*.html
+node_modules/
+.app-manifest.json
+*.before-vue-*.html

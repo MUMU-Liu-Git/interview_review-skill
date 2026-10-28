@@ -1,6 +1,6 @@
 # 数据架构 · interview-bank.json
 
-单一数据源。所有题库 + 复盘 + 真题索引都在这一个文件里（skill 的 `assets/interview-bank.json`）。页面不再有分散的 JS 字面量——数据由 `sync-bank.js` 注入 `interview-practice.html` 的 `<script type="application/json" id="bankData">` 块。页面双击即可打开（数据内嵌，不依赖本地 server）。
+单一数据源。所有题库 + 复盘 + 真题索引都在这一个文件里，位于**数据目录**（不在 skill 目录里；定位规则见 SKILL.md「开工前先确认」）。数据目录里部署好的 `interview-practice.html`（Vue 页面）打开时直接读取同目录的 `interview-bank.json` 和可选的 `profile.json`，改完刷新即可，不需要重新生成。页面要通过本地静态服务打开。
 
 ## 结构
 
@@ -31,6 +31,9 @@
       "date": "示例",
       "hl": "green",                  // green/orange/red，按本场整体表现
       "nav": "示例公司一面复盘",       // 侧栏链接文字（前面自动加 ★）
+      "company": "示例公司",           // 可选：侧栏分组用的公司名；不填从 realIndex.co 推导
+      "round": "一面 · 产品向",        // 可选：侧栏显示的轮次；不填从标题识别
+      "score": 7.5,                    // 可选：0–10 本场评分；不填按 hl +【亮/稳/改/翻/漏】估算，显示为「≈」
       "md": "> 复盘对象：…完整 Markdown…"
     }
   ],
@@ -60,4 +63,25 @@
 - 复盘卡正文里写的"对应题库 **Qn**"必须与该场 realIndex 块题号一一对应，不多不少。
 - `reviews[].id` 唯一，只用小写英文/拼音（做 HTML 锚点）。
 - 真题判定与排序交给页面：真题（`real:true` 或题干含“原题”）> 高频(3) > 较可能(2) > 深挖(1)，同级保持录入顺序。**只管 append，不要手动排序。**
-- 校验/注入统一走 `scripts/sync-bank.js`，它会检查题号唯一、维度合法、复盘卡字段完整、注入后 JSON 仍可解析，以及上面三条真题对齐规则（不通过直接拒绝写入）。
+- 校验统一走 `scripts/check.mjs <数据目录>`（规则在 `app/lib/validate.js`，页面加载时也跑同一份），它会检查 JSON 可解析、题号唯一、维度合法、复盘卡字段完整，以及上面三条真题对齐规则。
+
+## profile.json（可选，个人信息）
+
+姓名、目标岗位、个人备注都放这里，模板里不写死任何个人内容；缺省字段用通用文案。
+
+```jsonc
+{
+  "name": "示例同学",                          // 页眉与标题
+  "role": "AI 产品经理",
+  "dimNotes": { "D8": "你的已知短板" },        // 一、维度分类：对应维度行尾的加粗备注
+  "mindDimNotes": { "D8": "已知短板·必补" },   // 一、思维导图：有值则该维度标红并显示备注
+  "slots": {                                   // 二~四章里的个人例子，都可省略
+    "bankSources": "…",                        // 二、题库说明里的“真题来源”
+    "chainNote": "…",                          // 三、四维扫描「链」的提醒
+    "evidenceExample": "…",                    // 三、「证」的画面例子
+    "discipline": "…",                         // 四、主模板核心纪律后的说明
+    "storyPain": "…", "storyFrame": "…", "storyMechanism": "…", "storyNumbers": "…",  // 四、项目介绍模板 2–5 步
+    "mindStoryPain": "…", "mindStoryFrame": "…" // 四、思维导图里的对应短句
+  }
+}
+```
