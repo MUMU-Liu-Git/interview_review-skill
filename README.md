@@ -49,6 +49,7 @@ interview_review-skill/                 ← 工具（可公开）
 ├── scripts/
 │   ├── check.mjs                       校验数据目录
 │   ├── deploy.mjs                      把 dist 部署到数据目录
+│   ├── serve.bat                       Windows：起本地服务并打开页面
 │   └── hooks/pre-commit                可选：提交前按屏蔽词表拦截个人信息
 ├── tests/                              vitest 测试
 └── references/
@@ -78,6 +79,8 @@ node scripts/deploy.mjs "$INTERVIEW_REVIEW_DATA"
 cd ~/my-interview && python3 -m http.server 8080 --bind 127.0.0.1
 # 打开 http://127.0.0.1:8080/interview-practice.html
 ```
+**Windows**：上面的 `export` 换成 `set INTERVIEW_REVIEW_DATA=%USERPROFILE%\my-interview`，`cp -r` 换成在资源管理器里复制 `examples\demo`；部署后双击或运行 `scripts\serve.bat %INTERVIEW_REVIEW_DATA%`，它会用 Python 起本地服务并打开页面（需要先装 Python 3，安装时勾选 “Add python.exe to PATH”）。关掉弹出的服务窗口即停止服务。
+
 然后把示例的 `questions / reviews / realIndex` 换成你自己的（`dims` 维度框架保留不动），`profile.json` 改成你的信息，`node scripts/check.mjs ~/my-interview` 校验后刷新页面即可。字段说明见 `references/data-schema.md`。
 
 **配合 AI skill 用（推荐）**：在支持 skill 的 AI 工具里加载本仓库并设置好数据目录，然后说「复盘这场面试」并贴上转录稿，AI 会按 `SKILL.md` 更新你的 bank 并校验。
