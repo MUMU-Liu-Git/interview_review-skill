@@ -4,7 +4,7 @@ rem Windows launcher: serve a data directory on 127.0.0.1 and open the practice 
 rem The page reads interview-bank.json at runtime, so it must be opened over http, not by double-clicking.
 rem Usage: scripts\serve.bat [data-dir] [port]
 rem   data-dir defaults to %INTERVIEW_REVIEW_DATA%; port defaults to 8080.
-rem   To stop the server, close the "interview_review server" window.
+rem   To stop the server, close the "interview-review server" window.
 set "DATA=%~1"
 if "%DATA%"=="" set "DATA=%INTERVIEW_REVIEW_DATA%"
 if "%DATA%"=="" (
@@ -28,7 +28,7 @@ netstat -ano | findstr /R /C:":%PORT% .*LISTENING" >nul && (
   echo Port %PORT% is already in use, opening the page without starting a new server.
   goto open
 )
-start "interview_review server (close this window to stop)" /D "%DATA%" %PY% -m http.server %PORT% --bind 127.0.0.1
+start "interview-review server (close this window to stop)" /D "%DATA%" %PY% -m http.server %PORT% --bind 127.0.0.1
 timeout /t 2 /nobreak >nul
 :open
 start "" "http://127.0.0.1:%PORT%/interview-practice.html"

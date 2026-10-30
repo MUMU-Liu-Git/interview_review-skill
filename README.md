@@ -1,4 +1,4 @@
-# interview_review · AI产品经理面试复盘 skill
+# interview-review · AI产品经理面试复盘 skill
 
 把一场AI产品经理面试的**录音转文字稿**交给 AI，自动整理进一张**本地运行的面试复盘练习页**（Vue 3）——真题按维度归档、现场表现一眼可见、可答题、可导出打印。
 
