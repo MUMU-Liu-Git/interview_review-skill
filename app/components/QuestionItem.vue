@@ -46,9 +46,9 @@ function onInput(e) { setAnswer(qid.value, e.target.value); }
         <button class="tab" :class="{ on: showPreview }" data-t="prev" @click="tab = 'prev'">预览</button>
       </div>
       <textarea v-show="!showPreview" class="inp" :value="value" @input="onInput"
-        placeholder="在这里写你的答案，支持 Markdown（**加粗**、- 列表、# 标题、> 引用、`代码`）"></textarea>
+        placeholder="先别看三、四章，用自己的话把答案写一遍（像当面说出来那样）。写完再对照模板，找出最卡的一个点，在下面写第二版。支持 Markdown。"></textarea>
       <div v-show="showPreview" class="preview" v-html="previewHtml"></div>
-      <div class="hint">支持 Markdown · 输入即暂存本地 · 每 5 分钟自动保存</div>
+      <div class="hint">先自己讲 → 对照模板找一个卡点 → 写第二版 · 支持 Markdown · 输入即暂存本地 · 每 5 分钟自动保存</div>
     </div>
   </div>
 </template>

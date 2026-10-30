@@ -10,5 +10,9 @@
   "slots": {
     "discipline": "示例：把面试官当场指出的问题写在这里，每次答题前提醒自己。",
     "bankSources": "示例公司真题"
+  },
+  "traps": {
+    "offTopic": "示例：Q3",
+    "case": "示例：Q9"
   }
 }

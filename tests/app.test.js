@@ -58,14 +58,27 @@ describe('复盘导航', () => {
 describe('profile', () => {
   it('缺省时用通用文案、不出现 undefined', () => {
     const fw = buildFramework(mergeProfile());
-    expect(fw.think).toContain('设计/Case 题永远第一个想这一维');
+    expect(fw.think).toContain('设计/Case 题拆环节这一步不能省');
     expect(fw.classify + fw.think + fw.answer).not.toContain('undefined');
+    expect(fw.classify + fw.think + fw.answer).not.toContain('我的真题卡点');
     expect(fw.maps.classify.root.c[2].c[2].lv).toBeUndefined();
   });
   it('有 D8 备注时维度行加粗、导图标红', () => {
     const fw = buildFramework(mergeProfile({ dimNotes: { D8: '短板' }, mindDimNotes: { D8: '必补' } }));
     expect(fw.classify).toContain('技术与落地顺序（**短板**）');
     expect(fw.maps.classify.root.c[2].c[2]).toMatchObject({ lv: 'hot', note: '必补' });
+  });
+  it('维度分类含 D12 反问和横切失分模式', () => {
+    const fw = buildFramework(mergeProfile());
+    expect(fw.classify).toContain('D12 反问');
+    expect(fw.classify).toContain('横切的失分模式');
+    expect(fw.maps.classify.root.c[4].c.map(n => n.t)).toContain('D12 反问');
+  });
+  it('traps 渲染成「我的真题卡点」并保留 Q 号', () => {
+    const fw = buildFramework(mergeProfile({ traps: { reverse: 'Q7、Q9', offTopic: 'Q3' } }));
+    expect(fw.answer).toContain('> 我的真题卡点：Q7、Q9');
+    expect(fw.classify).toContain('防法：第一句正面回应题眼（见第三章）。 我的真题卡点：Q3');
+    expect(fw.think).toContain('> 我的真题卡点：Q3');
   });
 });
 

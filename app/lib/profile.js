@@ -1,7 +1,10 @@
 /* 个人信息：来自数据目录的 profile.json；缺省字段用这里的通用文案 */
 export const PROFILE_DEFAULT = {
-  name: '', role: '', dimNotes: {}, mindDimNotes: {}, slots: {
-    chainNote: '设计/Case 题永远第一个想这一维。',
+  name: '', role: '', dimNotes: {}, mindDimNotes: {},
+  // traps：各小节末尾的「我的真题卡点」，值是一段含 Q 号的文字，键见 content/framework.js 的 tp()/ti()
+  traps: {},
+  slots: {
+    chainNote: '设计/Case 题拆环节这一步不能省。',
     evidenceExample: '把抽象结论换成具体场景',
     discipline: '设计/Case 题最常见的失分就是一上来就给方案——先分析后方案，记死。',
     storyPain: '不说抽象结论，说一个能放出画面的具体场景（谁、在什么情境下、被什么卡住）',
@@ -19,6 +22,7 @@ export function mergeProfile(raw) {
   return Object.assign({}, PROFILE_DEFAULT, raw, {
     dimNotes: Object.assign({}, raw.dimNotes),
     mindDimNotes: Object.assign({}, raw.mindDimNotes),
+    traps: Object.assign({}, raw.traps),
     slots: Object.assign({}, PROFILE_DEFAULT.slots, raw.slots),
   });
 }
